@@ -1,0 +1,14 @@
+# LangChain Core
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-openai>=0.0.5
+langchain-huggingface>=0.0.1
+
+# Hugging Face Support
+transformers>=4.35.0
+torch>=2.0.0
+sentencepiece>=0.1.99
+
+# Optional: For environment variable management
+python-dotenv>=1.0.0
+

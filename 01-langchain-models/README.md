@@ -123,6 +123,12 @@ make huggingface
 
 # Run both examples
 make all
+
+# Test your knowledge with the quiz
+make quiz
+
+# Complete the coding challenge
+make challenge
 ```
 
 > **Note:** The first time you run any command, it will automatically set up the virtual environment and install dependencies if needed.
@@ -165,6 +171,81 @@ Simple example demonstrating:
 > **Note:** The model will be downloaded on first run. This may take a few minutes depending on your internet connection.
 
 Notice how both examples use the same `.invoke()` method, even though they're using completely different model providers. This is the power of LangChain's abstraction!
+
+## Test Your Knowledge
+
+After running the examples, test your understanding with the interactive quiz:
+
+```bash
+make quiz
+```
+
+The quiz includes:
+- **3 questions** covering key concepts about LangChain models
+- **Multiple choice format** with 3 options per question
+- **Immediate feedback** on each answer
+- **Score calculation** at the end
+- **Personalized messages** based on your performance
+
+### Quiz Topics
+
+The quiz tests your knowledge of:
+1. The `.invoke()` method for sending prompts to models
+2. The `ChatOpenAI` class for OpenAI models
+3. LangChain's unified interface across providers
+
+### Scoring
+
+- **3/3**: 🎉 Perfect! You've mastered LangChain models!
+- **2/3**: 👍 Great job! You have a good understanding.
+- **1/3**: 📚 Good start! Review the concepts you missed.
+- **0/3**: 📖 Don't worry! Review the README and examples.
+
+## Coding Challenge
+
+Put your knowledge to the test with a hands-on coding challenge:
+
+```bash
+make challenge
+```
+
+### Challenge Overview
+
+The challenge requires you to complete a Python script by filling in missing code. You'll need to:
+
+1. **Import the model class** - Use the correct import for OpenAI models
+2. **Create a model instance** - Instantiate the model class
+3. **Invoke the model** - Use the correct method to send a prompt
+4. **Extract the response** - Get the response content from the model
+
+### How It Works
+
+1. **Open `challenge.py`** - This file contains code with `XXXX___` placeholders
+2. **Replace the placeholders** - Fill in the missing code based on what you've learned
+3. **Test your solution** - Run `make challenge` to check if your code works
+4. **Get hints** - If you're stuck, the Makefile will provide helpful hints
+
+### Challenge File Structure
+
+The challenge file (`challenge.py`) includes:
+- Complete setup code (environment loading, model selection)
+- Four `XXXX___` placeholders that need to be filled in
+- Clear comments explaining what each step should do
+- Working code that will run once completed
+
+### Getting Help
+
+- **Hints**: The Makefile provides hints if you have placeholders remaining
+- **Reference**: Look at `openai_example.py` for working examples
+- **Solution**: Check `challenge_solution.py` if you're completely stuck (but try first!)
+
+### What You'll Learn
+
+By completing the challenge, you'll reinforce:
+- How to import and use model classes
+- How to create model instances
+- How to invoke models with prompts
+- How to extract responses from models
 
 ## Key Differences
 

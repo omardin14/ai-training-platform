@@ -6,14 +6,14 @@ PYTHON = $(VENV)/bin/python
 PIP = $(VENV)/bin/pip
 
 help:
-	@echo "LangChain Prompt Templates Demo - Makefile Commands"
-	@echo "===================================================="
+	@echo "LangChain Prompt Chains Demo - Makefile Commands"
+	@echo "================================================="
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make setup        - Create .env file from template"
 	@echo "  make venv         - Create virtual environment only"
 	@echo "  make install      - Create venv and install all dependencies"
-	@echo "  make run          - Run the prompt template example"
+	@echo "  make run          - Run the prompt chain example"
 	@echo "  make quiz         - Take a quiz to test your knowledge"
 	@echo "  make challenge    - Complete the coding challenge"
 	@echo "  make all          - Run all examples"
@@ -21,7 +21,7 @@ help:
 	@echo ""
 	@echo "Quick Start:"
 	@echo "  1. Run 'make setup' to create .env file"
-	@echo "  2. Edit .env and add your API keys"
+	@echo "  2. Edit .env and add your API keys (optional)"
 	@echo "  3. Run 'make install' to set up virtual environment and install dependencies"
 	@echo "  4. Run 'make run' to see the example"
 	@echo ""
@@ -64,13 +64,13 @@ install: venv
 	@echo "Virtual environment is ready! All commands will use it automatically."
 
 run: install
-	@echo "Running prompt template example..."
+	@echo "Running prompt chain example..."
 	@if [ ! -f .env ] && [ -z "$$OPENAI_API_KEY" ]; then \
-		echo "⚠️  Warning: .env file not found and OPENAI_API_KEY not set"; \
-		echo "   Run 'make setup' to create .env file, or set environment variable"; \
+		echo "⚠️  Note: .env file not found and OPENAI_API_KEY not set"; \
+		echo "   The example will use Hugging Face model (may take time on first run)"; \
 		echo ""; \
 	fi
-	@$(PYTHON) prompt_template_example.py
+	@$(PYTHON) prompt_chain_example.py
 
 all: run
 	@echo ""
@@ -79,10 +79,10 @@ all: run
 quiz:
 	@echo ""
 	@echo "======================================================================"
-	@echo "📝 Prompt Templates Quiz"
+	@echo "📝 Prompt Chains Quiz"
 	@echo "======================================================================"
 	@echo ""
-	@echo "Test your knowledge of prompt templates!"
+	@echo "Test your knowledge of prompt chains!"
 	@echo "Answer each question by typing a, b, or c"
 	@echo ""
 	@score=0; \
@@ -91,60 +91,60 @@ quiz:
 	echo "  Question 1 of 3"; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	echo ""; \
-	echo "  What class is used to create prompt templates with system and human messages?"; \
+	echo "  What operator is used to chain prompt templates with models in LangChain?"; \
 	echo ""; \
-	echo "    a) PromptTemplate"; \
-	echo "    b) ChatPromptTemplate"; \
-	echo "    c) MessageTemplate"; \
+	echo "    a) + (plus)"; \
+	echo "    b) | (pipe)"; \
+	echo "    c) -> (arrow)"; \
 	echo ""; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	read -p "  Your answer (a/b/c): " ans1; \
 	echo ""; \
 	if [ "$$ans1" = "b" ] || [ "$$ans1" = "B" ]; then \
-		echo "  ✓ Correct! ChatPromptTemplate is used for chat-style prompts."; \
+		echo "  ✓ Correct! The pipe operator (|) is used to chain components."; \
 		score=$$((score + 1)); \
 	else \
-		echo "  ✗ Incorrect. The correct answer is b) ChatPromptTemplate"; \
+		echo "  ✗ Incorrect. The correct answer is b) | (pipe)"; \
 	fi; \
 	echo ""; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	echo "  Question 2 of 3"; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	echo ""; \
-	echo "  How do you fill in a variable in a prompt template?"; \
+	echo "  What method is used to invoke a chain with input variables?"; \
 	echo ""; \
-	echo "    a) Use .format() method"; \
-	echo "    b) Use .format_messages() method"; \
-	echo "    c) Use .fill() method"; \
+	echo "    a) .invoke()"; \
+	echo "    b) .call()"; \
+	echo "    c) .run()"; \
 	echo ""; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	read -p "  Your answer (a/b/c): " ans2; \
 	echo ""; \
-	if [ "$$ans2" = "b" ] || [ "$$ans2" = "B" ]; then \
-		echo "  ✓ Correct! .format_messages() fills in variables in chat templates."; \
+	if [ "$$ans2" = "a" ] || [ "$$ans2" = "A" ]; then \
+		echo "  ✓ Correct! The .invoke() method is used to run the chain."; \
 		score=$$((score + 1)); \
 	else \
-		echo "  ✗ Incorrect. The correct answer is b) .format_messages()"; \
+		echo "  ✗ Incorrect. The correct answer is a) .invoke()"; \
 	fi; \
 	echo ""; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	echo "  Question 3 of 3"; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	echo ""; \
-	echo "  What syntax is used to define a variable placeholder in a template?"; \
+	echo "  In the code 'chain = prompt | llm', what does the pipe operator do?"; \
 	echo ""; \
-	echo "    a) {{variable_name}}"; \
-	echo "    b) {variable_name}"; \
-	echo "    c) [variable_name]"; \
+	echo "    a) It saves the prompt to a file"; \
+	echo "    b) It formats the prompt and sends it to the model"; \
+	echo "    c) It connects the prompt template with the LLM to create a chain"; \
 	echo ""; \
 	echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 	read -p "  Your answer (a/b/c): " ans3; \
 	echo ""; \
-	if [ "$$ans3" = "b" ] || [ "$$ans3" = "B" ]; then \
-		echo "  ✓ Correct! Variables use {variable_name} syntax."; \
+	if [ "$$ans3" = "c" ] || [ "$$ans3" = "C" ]; then \
+		echo "  ✓ Correct! The pipe operator connects components to create a chain."; \
 		score=$$((score + 1)); \
 	else \
-		echo "  ✗ Incorrect. The correct answer is b) {variable_name}"; \
+		echo "  ✗ Incorrect. The correct answer is c) It connects the prompt template with the LLM"; \
 	fi; \
 	echo ""; \
 	echo "======================================================================"; \
@@ -154,10 +154,10 @@ quiz:
 	echo "  Your score: $$score/3"; \
 	echo ""; \
 	if [ $$score -eq 3 ]; then \
-		echo "  🎉 Perfect! You've mastered prompt templates!"; \
-		echo "     You understand how to create and use templates with variables."; \
+		echo "  🎉 Perfect! You've mastered prompt chains!"; \
+		echo "     You understand how to use the pipe operator and create chains."; \
 	elif [ $$score -eq 2 ]; then \
-		echo "  👍 Great job! You have a good understanding of prompt templates."; \
+		echo "  👍 Great job! You have a good understanding of prompt chains."; \
 		echo "     Review the concepts you missed and try again!"; \
 	elif [ $$score -eq 1 ]; then \
 		echo "  📚 Good start! You're on the right track."; \
@@ -176,7 +176,7 @@ challenge: install
 	@echo ""
 	@echo "Your task: Complete the code in challenge.py"
 	@echo "  - Replace the XXXX___ placeholders with the correct code"
-	@echo "  - The challenge tests your understanding of prompt templates"
+	@echo "  - The challenge tests your understanding of prompt chains"
 	@echo ""
 	@echo "Steps:"
 	@echo "  1. Open challenge.py in your editor"
@@ -194,10 +194,10 @@ challenge: install
 		echo "   Please complete all the challenges first."; \
 		echo ""; \
 		echo "Hints:"; \
-		echo "  - Look at prompt_template_example.py for reference"; \
-		echo "  - The first XXXX___ should be a class name (ChatPromptTemplate)"; \
-		echo "  - The second XXXX___ should be a method name (from_messages)"; \
-		echo "  - The third XXXX___ should be a method name (format_messages)"; \
+		echo "  - Look at prompt_chain_example.py for reference"; \
+		echo "  - The first XXXX___ should be a method name (from_template)"; \
+		echo "  - The second XXXX___ should be an operator (|)"; \
+		echo "  - The third XXXX___ should be a method name (invoke)"; \
 		echo ""; \
 		exit 1; \
 	else \

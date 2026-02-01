@@ -117,6 +117,12 @@ The Makefile automatically uses the virtual environment:
 # Run the example (creates venv and installs deps if needed)
 make run
 
+# Test your knowledge with the quiz
+make quiz
+
+# Complete the coding challenge
+make challenge
+
 # Or run directly
 make all
 ```
@@ -190,6 +196,80 @@ The example demonstrates:
 - **Using variables** (`{topic}`) as placeholders
 - **Formatting the template** by filling in the variable with an actual value
 - **Using the formatted prompt** with a model (OpenAI or Hugging Face)
+
+## Test Your Knowledge
+
+After running the examples, test your understanding with the interactive quiz:
+
+```bash
+make quiz
+```
+
+The quiz includes:
+- **3 questions** covering key concepts about prompt templates
+- **Multiple choice format** with 3 options per question
+- **Immediate feedback** on each answer
+- **Score calculation** at the end
+- **Personalized messages** based on your performance
+
+### Quiz Topics
+
+The quiz tests your knowledge of:
+1. The `ChatPromptTemplate` class for creating templates
+2. The `.format_messages()` method for filling in variables
+3. Variable placeholder syntax (`{variable_name}`)
+
+### Scoring
+
+- **3/3**: 🎉 Perfect! You've mastered prompt templates!
+- **2/3**: 👍 Great job! You have a good understanding.
+- **1/3**: 📚 Good start! Review the concepts you missed.
+- **0/3**: 📖 Don't worry! Review the README and examples.
+
+## Coding Challenge
+
+Put your knowledge to the test with a hands-on coding challenge:
+
+```bash
+make challenge
+```
+
+### Challenge Overview
+
+The challenge requires you to complete a Python script by filling in missing code. You'll need to:
+
+1. **Import the template class** - Use the correct import for `ChatPromptTemplate`
+2. **Create a template** - Use the correct method to create a template from messages
+3. **Format the template** - Use the correct method to fill in variables
+
+### How It Works
+
+1. **Open `challenge.py`** - This file contains code with `XXXX___` placeholders
+2. **Replace the placeholders** - Fill in the missing code based on what you've learned
+3. **Test your solution** - Run `make challenge` to check if your code works
+4. **Get hints** - If you're stuck, the Makefile will provide helpful hints
+
+### Challenge File Structure
+
+The challenge file (`challenge.py`) includes:
+- Complete setup code (model loading, imports)
+- Three `XXXX___` placeholders that need to be filled in
+- Clear comments explaining what each step should do
+- Working code that will run once completed
+
+### Getting Help
+
+- **Hints**: The Makefile provides hints if you have placeholders remaining
+- **Reference**: Look at `prompt_template_example.py` for working examples
+- **Solution**: Check `challenge_solution.py` if you're completely stuck (but try first!)
+
+### What You'll Learn
+
+By completing the challenge, you'll reinforce:
+- How to import and use `ChatPromptTemplate`
+- How to create templates with system and human messages
+- How to format templates with actual values
+- How to use formatted templates with models
 
 ## Key Benefits
 
