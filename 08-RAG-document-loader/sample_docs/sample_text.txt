@@ -1,0 +1,24 @@
+LangChain Document Loaders
+
+This is a sample text document that demonstrates how text files can be loaded using LangChain's TextLoader.
+
+Document Structure:
+- This document contains multiple paragraphs
+- Each paragraph represents different information
+- The loader will extract all text content
+
+Key Features:
+1. Simple text format
+2. Easy to read and process
+3. No special formatting required
+4. Works with any plain text file
+
+Use Cases:
+- Configuration files
+- Documentation
+- Notes and memos
+- Code comments
+- Any plain text content
+
+The TextLoader is one of the simplest document loaders in LangChain, making it perfect for basic text processing tasks in RAG applications.
+
