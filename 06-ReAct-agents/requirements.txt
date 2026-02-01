@@ -1,0 +1,13 @@
+# LangChain Core
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.20
+langgraph>=0.1.0
+
+# Required for llm-math tool
+numexpr>=2.8.0
+
+# Optional: For environment variable management
+python-dotenv>=1.0.0
+
