@@ -169,30 +169,33 @@ quiz:
 
 challenge: install
 	@echo ""
-	@echo "======================================================================"
-	@echo "💻 Coding Challenge"
-	@echo "======================================================================"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "  💻 CODING CHALLENGE"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
-	@echo "Your task: Complete the code in challenge.py"
-	@echo "  - Replace the XXXX___ placeholders with the correct code"
-	@echo "  - The challenge tests your understanding of custom tools"
+	@echo "  📄 File:  challenge.py"
+	@echo "  📚 Topic: Custom tools"
 	@echo ""
-	@echo "Steps:"
-	@echo "  1. Open challenge.py in your editor"
-	@echo "  2. Replace each XXXX___ with the correct code"
-	@echo "  3. Run 'make challenge' again to test your solution"
+	@echo "  Steps:"
+	@echo "    1. Open challenge.py in your editor"
+	@echo "    2. Replace each XXXX___ placeholder with the correct code"
+	@echo "    3. Run 'make challenge' again to test your solution"
 	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@if [ ! -f challenge.py ]; then \
-		echo "❌ Error: challenge.py not found!"; \
+		echo ""; \
+		echo "  ❌ Error: challenge.py not found!"; \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		exit 1; \
 	fi
-	@echo "Checking your solution..."
 	@echo ""
-	@if grep -q "XXXX___" challenge.py; then \
-		echo "⚠️  You still have XXXX___ placeholders in your code."; \
-		echo "   Please complete all the challenges first."; \
+	@echo "  Checking your solution..."
+	@echo ""
+	@if $(PYTHON) -c "import re,sys; code=open('challenge.py').read(); code=re.sub(r'\"\"\".*?\"\"\"','',code,flags=re.DOTALL); code='\n'.join(l for l in code.split('\n') if not l.strip().startswith('#')); sys.exit(0 if 'XXXX___' in code else 1)"; then \
+		echo "  ⚠️  INCOMPLETE: You still have XXXX___ placeholders in your code."; \
 		echo ""; \
-		echo "Hints:"; \
+		echo "  Hints:"; \
 		echo "  - Look at custom_tool_example.py for reference"; \
 		echo "  - The first XXXX___ should be an import (@tool decorator)"; \
 		echo "  - The second XXXX___ should be the decorator name (@tool)"; \
@@ -200,11 +203,12 @@ challenge: install
 		echo "  - The fourth XXXX___ should be a function name (create_react_agent)"; \
 		echo "  - The fifth XXXX___ should be a method name (invoke)"; \
 		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		exit 1; \
 	else \
-		echo "✓ No placeholders found. Testing your solution..."; \
+		echo "  ✓ No placeholders found. Running your solution..."; \
 		echo ""; \
-		$(PYTHON) challenge.py && echo "" && echo "🎉 Congratulations! Your solution works!" || echo "" && echo "❌ Your code has errors. Check the output above."; \
+		$(PYTHON) challenge.py && { echo ""; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo "  ✅ PASSED - Your solution works!"; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; } || { echo ""; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo "  ❌ FAILED - Your code has errors. Check the output above."; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; }; \
 	fi
 
 clean:
