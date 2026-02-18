@@ -1,16 +1,15 @@
-.PHONY: help run all install setup venv clean quiz challenge
+EXTRA_CLEAN_DIRS = chroma_db
 
-# Virtual environment directory
-VENV = venv
-PYTHON = $(VENV)/bin/python
-PIP = $(VENV)/bin/pip
+include ../Makefile.common
+
+.PHONY: help run all quiz challenge
 
 help:
 	@echo "LangChain Document Storage Demo - Makefile Commands"
 	@echo "==================================================="
 	@echo ""
 	@echo "Available commands:"
-	@echo "  make setup        - Create .env file from template"
+	@echo "  make setup        - Create root .env file from template"
 	@echo "  make venv         - Create virtual environment only"
 	@echo "  make install      - Create venv and install all dependencies"
 	@echo "  make run          - Run the document storage example"
@@ -20,51 +19,15 @@ help:
 	@echo "  make clean        - Clean Python cache files and virtual environment"
 	@echo ""
 	@echo "Quick Start:"
-	@echo "  1. Run 'make setup' to create .env file (optional but recommended)"
-	@echo "  2. Edit .env and add your OpenAI API key (optional, uses Hugging Face if not set)"
+	@echo "  1. Run 'make setup' to create root .env file (optional but recommended)"
+	@echo "  2. Edit ../.env and add your OpenAI API key (optional, uses Hugging Face if not set)"
 	@echo "  3. Run 'make install' to set up virtual environment and install dependencies"
 	@echo "  4. Run 'make run' to see the example"
 	@echo ""
 
-setup:
-	@if [ ! -f .env ]; then \
-		if [ -f .env.example ]; then \
-			echo "Creating .env file from .env.example..."; \
-			cp .env.example .env; \
-			echo "✓ .env file created from .env.example!"; \
-			echo "  Edit .env and add your OpenAI API key (optional, uses Hugging Face if not set)."; \
-		else \
-			echo "Creating .env file from template..."; \
-			echo "# OpenAI API Key (Optional but recommended)" > .env; \
-			echo "# Get your key from: https://platform.openai.com/api-keys" >> .env; \
-			echo "# If not set, will use Hugging Face embeddings" >> .env; \
-			echo "OPENAI_API_KEY=your-openai-api-key-here" >> .env; \
-			echo "✓ .env file created! Please edit it and add your API key (optional)."; \
-		fi \
-	else \
-		echo "⚠️  .env file already exists. Skipping..."; \
-	fi
-
-venv:
-	@if [ ! -d $(VENV) ]; then \
-		echo "Creating virtual environment..."; \
-		python3 -m venv $(VENV); \
-		echo "✓ Virtual environment created!"; \
-	else \
-		echo "✓ Virtual environment already exists."; \
-	fi
-
-install: venv
-	@echo "Installing dependencies..."
-	@$(PIP) install --upgrade pip
-	@$(PIP) install -r requirements.txt
-	@echo "✓ Installation complete!"
-	@echo ""
-	@echo "Virtual environment is ready! All commands will use it automatically."
-
 run: install
 	@echo "Running document storage example..."
-	@if [ ! -f .env ] && [ -z "$$OPENAI_API_KEY" ]; then \
+	@if [ ! -f ../.env ] && [ -z "$$OPENAI_API_KEY" ]; then \
 		echo "⚠️  Note: .env file not found and OPENAI_API_KEY not set"; \
 		echo "   Will use Hugging Face embeddings (OpenAI recommended for best results)"; \
 		echo ""; \
@@ -208,19 +171,3 @@ challenge: install
 		echo ""; \
 		$(PYTHON) challenge.py && { echo ""; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo "  ✅ PASSED - Your solution works!"; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; } || { echo ""; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo "  ❌ FAILED - Your code has errors. Check the output above."; echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; }; \
 	fi
-
-clean:
-	@echo "Cleaning Python cache files and virtual environment..."
-	@find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
-	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	@find . -type f -name "*.pyo" -delete 2>/dev/null || true
-	@if [ -d chroma_db ]; then \
-		rm -rf chroma_db; \
-		echo "✓ Vector database directory removed"; \
-	fi
-	@if [ -d $(VENV) ]; then \
-		rm -rf $(VENV); \
-		echo "✓ Virtual environment removed"; \
-	fi
-	@echo "✓ Clean complete!"
-
