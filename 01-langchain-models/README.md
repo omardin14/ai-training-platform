@@ -2,6 +2,7 @@
 
 This module introduces the fundamental concept of using different language models with LangChain. LangChain provides a unified interface to work with various LLM providers, making it easy to switch between different models.
 
+<!-- lesson:page Why LangChain? -->
 ## Why LangChain?
 
 Consider a real-world scenario: building a **customer support chatbot** that uses LLMs to converse with customers. The chatbot needs to:
@@ -21,6 +22,7 @@ To build such a system, you need to manage several components:
 
 **LangChain can be used to manage all these components**, providing a unified framework that simplifies working with different LLM providers and building complex AI applications.
 
+<!-- lesson:page Working with LangChain Models -->
 ### Working with LangChain Models
 
 LangChain abstracts away the differences between model providers, making it easy to switch between them:
@@ -37,6 +39,46 @@ LangChain abstracts away the differences between model providers, making it easy
 - **OpenAI Models**: Using GPT models via OpenAI's API
 - **Hugging Face Models**: Using open-source models from Hugging Face
 - **Model Abstraction**: How LangChain provides a consistent interface across different providers
+
+<!-- lesson:page Code Examples -->
+## Code Examples
+
+Both examples follow the same pattern, demonstrating LangChain's unified interface:
+
+1. **Load the model** - Initialize the model with appropriate parameters
+2. **Invoke with a prompt** - Use the `.invoke()` method (works the same for all providers)
+3. **Get the response** - Receive and use the model's output
+
+### OpenAI Example (`openai_example.py`)
+
+Simple example demonstrating:
+- Loading an OpenAI model using `ChatOpenAI`
+- Invoking the model with a prompt using `.invoke()`
+- Getting the response
+
+### Hugging Face Example (`huggingface_example.py`)
+
+Simple example demonstrating:
+- Loading a Hugging Face model using `HuggingFacePipeline` (runs locally)
+- Invoking the model with a prompt using `.invoke()` (same method!)
+- Getting the response
+
+> **Note:** The model will be downloaded on first run. This may take a few minutes depending on your internet connection.
+
+Notice how both examples use the same `.invoke()` method, even though they're using completely different model providers. This is the power of LangChain's abstraction!
+
+<!-- lesson:page Key Differences -->
+## Key Differences
+
+| Feature | OpenAI | Hugging Face |
+|---------|--------|--------------|
+| **Access** | API-based (requires internet) | Can run locally |
+| **Cost** | Pay per token | Free (but requires compute) |
+| **Speed** | Fast (cloud infrastructure) | Depends on local hardware |
+| **Privacy** | Data sent to OpenAI | Data stays local |
+| **Setup** | API key required | Model download required |
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -146,32 +188,6 @@ python openai_example.py
 python huggingface_example.py
 ```
 
-## Code Examples
-
-Both examples follow the same pattern, demonstrating LangChain's unified interface:
-
-1. **Load the model** - Initialize the model with appropriate parameters
-2. **Invoke with a prompt** - Use the `.invoke()` method (works the same for all providers)
-3. **Get the response** - Receive and use the model's output
-
-### OpenAI Example (`openai_example.py`)
-
-Simple example demonstrating:
-- Loading an OpenAI model using `ChatOpenAI`
-- Invoking the model with a prompt using `.invoke()`
-- Getting the response
-
-### Hugging Face Example (`huggingface_example.py`)
-
-Simple example demonstrating:
-- Loading a Hugging Face model using `HuggingFacePipeline` (runs locally)
-- Invoking the model with a prompt using `.invoke()` (same method!)
-- Getting the response
-
-> **Note:** The model will be downloaded on first run. This may take a few minutes depending on your internet connection.
-
-Notice how both examples use the same `.invoke()` method, even though they're using completely different model providers. This is the power of LangChain's abstraction!
-
 ## Test Your Knowledge
 
 After running the examples, test your understanding with the interactive quiz:
@@ -247,19 +263,8 @@ By completing the challenge, you'll reinforce:
 - How to invoke models with prompts
 - How to extract responses from models
 
-## Key Differences
-
-| Feature | OpenAI | Hugging Face |
-|---------|--------|--------------|
-| **Access** | API-based (requires internet) | Can run locally |
-| **Cost** | Pay per token | Free (but requires compute) |
-| **Speed** | Fast (cloud infrastructure) | Depends on local hardware |
-| **Privacy** | Data sent to OpenAI | Data stays local |
-| **Setup** | API key required | Model download required |
-
 ## Next Steps
 
 After understanding models, proceed to:
 - **02-prompt-templates**: Learn how to create and use prompt templates
 - **03-prompt-chains**: Discover how to chain multiple prompts together
-

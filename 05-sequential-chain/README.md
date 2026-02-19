@@ -2,6 +2,7 @@
 
 This module introduces **Sequential Chains** - connecting multiple chains together where the output of one chain becomes the input to the next chain.
 
+<!-- lesson:page What are Sequential Chains? -->
 ## What are Sequential Chains?
 
 Sequential chains allow you to create multi-step workflows where:
@@ -17,6 +18,7 @@ Sequential chains allow you to create multi-step workflows where:
 - **Chain Composition**: Connecting multiple chains together
 - **Data Flow**: Passing outputs between chains
 
+<!-- lesson:page How Sequential Chains Work -->
 ## How Sequential Chains Work
 
 A sequential chain connects multiple processing steps:
@@ -36,6 +38,114 @@ Input: {activity}
 ```
 
 The output of the first chain becomes the input variable for the second chain.
+
+## Understanding Sequential Chain Structure
+
+Let's break down how a sequential chain works:
+
+```python
+# Step 1: Create the first prompt template
+explanation_prompt = PromptTemplate(
+    input_variables=["topic"],
+    template="Explain {topic} in detail, covering its key concepts and how it works."
+)
+
+# Step 2: Create the second prompt template
+summary_prompt = PromptTemplate(
+    input_variables=["detailed_explanation"],
+    template="Based on this explanation: {detailed_explanation}\n\nCreate a simple, beginner-friendly summary in 2-3 sentences."
+)
+
+# Step 3: Create the sequential chain
+seq_chain = (
+    {"detailed_explanation": explanation_prompt | llm | StrOutputParser()}
+    | summary_prompt
+    | llm
+    | StrOutputParser()
+)
+```
+
+### Key Components:
+
+1. **First Chain**: `explanation_prompt | llm | StrOutputParser()`
+   - Formats the prompt with the topic
+   - Sends to LLM
+   - Extracts text with StrOutputParser()
+
+2. **Dictionary Syntax**: `{"detailed_explanation": ...}`
+   - Passes the output of the first chain to the second chain
+   - The key `"detailed_explanation"` matches the input variable in `summary_prompt`
+
+3. **Second Chain**: `summary_prompt | llm | StrOutputParser()`
+   - Formats the prompt with the detailed explanation from step 1
+   - Sends to LLM
+   - Extracts final text
+
+### The Flow:
+
+```
+Input: {"topic": "quantum computing"}
+  ↓
+Step 1: explanation_prompt formats → "Explain quantum computing in detail..."
+  ↓
+LLM generates detailed explanation
+  ↓
+StrOutputParser() extracts text → "Quantum computing uses quantum mechanics..."
+  ↓
+Step 2: summary_prompt formats → "Based on this explanation: Quantum computing uses... Create a simple summary..."
+  ↓
+LLM generates simplified summary
+  ↓
+StrOutputParser() extracts final text → "Quantum computing is a type of computing..."
+```
+
+<!-- lesson:page Key Concepts Explained -->
+## Code Examples
+
+### Sequential Chain Example (`sequential_chain_example.py`)
+
+This example demonstrates:
+- Creating two prompt templates
+- Building a sequential chain that connects them
+- Using `StrOutputParser()` to extract text from responses
+- Passing data between chains using dictionary syntax
+
+**Key Features:**
+- First chain generates a detailed explanation of a topic
+- Second chain creates a simplified summary from the detailed explanation
+- Shows how outputs flow from one chain to the next
+
+## Key Concepts Explained
+
+### StrOutputParser()
+
+`StrOutputParser()` extracts the text content from an LLM response. It's essential in sequential chains because:
+- LLM responses are objects, not plain text
+- The next chain needs text input, not response objects
+- It converts `response.content` (or similar) to a simple string
+
+### Dictionary Syntax in Chains
+
+When you write:
+```python
+{"learning_plan": learning_prompt | llm | StrOutputParser()}
+```
+
+This means:
+- Run the chain: `learning_prompt | llm | StrOutputParser()`
+- Take its output
+- Pass it as the value for the key `"learning_plan"`
+- This value will be used to fill `{learning_plan}` in the next prompt
+
+### Why Sequential Chains?
+
+Sequential chains are useful when:
+- You need to process information in multiple steps
+- Each step depends on the previous step's output
+- You want to break complex tasks into simpler parts
+- You need to transform or refine information progressively
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -141,111 +251,6 @@ source venv/bin/activate  # On macOS/Linux
 python sequential_chain_example.py
 ```
 
-## Understanding Sequential Chain Structure
-
-Let's break down how a sequential chain works:
-
-```python
-# Step 1: Create the first prompt template
-explanation_prompt = PromptTemplate(
-    input_variables=["topic"],
-    template="Explain {topic} in detail, covering its key concepts and how it works."
-)
-
-# Step 2: Create the second prompt template
-summary_prompt = PromptTemplate(
-    input_variables=["detailed_explanation"],
-    template="Based on this explanation: {detailed_explanation}\n\nCreate a simple, beginner-friendly summary in 2-3 sentences."
-)
-
-# Step 3: Create the sequential chain
-seq_chain = (
-    {"detailed_explanation": explanation_prompt | llm | StrOutputParser()}
-    | summary_prompt
-    | llm
-    | StrOutputParser()
-)
-```
-
-### Key Components:
-
-1. **First Chain**: `explanation_prompt | llm | StrOutputParser()`
-   - Formats the prompt with the topic
-   - Sends to LLM
-   - Extracts text with StrOutputParser()
-
-2. **Dictionary Syntax**: `{"detailed_explanation": ...}`
-   - Passes the output of the first chain to the second chain
-   - The key `"detailed_explanation"` matches the input variable in `summary_prompt`
-
-3. **Second Chain**: `summary_prompt | llm | StrOutputParser()`
-   - Formats the prompt with the detailed explanation from step 1
-   - Sends to LLM
-   - Extracts final text
-
-### The Flow:
-
-```
-Input: {"topic": "quantum computing"}
-  ↓
-Step 1: explanation_prompt formats → "Explain quantum computing in detail..."
-  ↓
-LLM generates detailed explanation
-  ↓
-StrOutputParser() extracts text → "Quantum computing uses quantum mechanics..."
-  ↓
-Step 2: summary_prompt formats → "Based on this explanation: Quantum computing uses... Create a simple summary..."
-  ↓
-LLM generates simplified summary
-  ↓
-StrOutputParser() extracts final text → "Quantum computing is a type of computing..."
-```
-
-## Code Examples
-
-### Sequential Chain Example (`sequential_chain_example.py`)
-
-This example demonstrates:
-- Creating two prompt templates
-- Building a sequential chain that connects them
-- Using `StrOutputParser()` to extract text from responses
-- Passing data between chains using dictionary syntax
-
-**Key Features:**
-- First chain generates a detailed explanation of a topic
-- Second chain creates a simplified summary from the detailed explanation
-- Shows how outputs flow from one chain to the next
-
-## Key Concepts Explained
-
-### StrOutputParser()
-
-`StrOutputParser()` extracts the text content from an LLM response. It's essential in sequential chains because:
-- LLM responses are objects, not plain text
-- The next chain needs text input, not response objects
-- It converts `response.content` (or similar) to a simple string
-
-### Dictionary Syntax in Chains
-
-When you write:
-```python
-{"learning_plan": learning_prompt | llm | StrOutputParser()}
-```
-
-This means:
-- Run the chain: `learning_prompt | llm | StrOutputParser()`
-- Take its output
-- Pass it as the value for the key `"learning_plan"`
-- This value will be used to fill `{learning_plan}` in the next prompt
-
-### Why Sequential Chains?
-
-Sequential chains are useful when:
-- You need to process information in multiple steps
-- Each step depends on the previous step's output
-- You want to break complex tasks into simpler parts
-- You need to transform or refine information progressively
-
 ## Quiz
 
 Test your understanding of sequential chains! Run:
@@ -297,14 +302,3 @@ If you encounter issues:
 2. Verify your `.env` file is set up correctly: `make setup`
 3. Try running the example directly: `python sequential_chain_example.py`
 4. Check the error messages for specific guidance
-
-## Summary
-
-Sequential chains enable you to:
-- ✅ Connect multiple processing steps
-- ✅ Pass outputs between chains
-- ✅ Build complex workflows from simple steps
-- ✅ Process information in stages
-
-This is a powerful pattern for building sophisticated LLM applications!
-

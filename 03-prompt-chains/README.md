@@ -2,6 +2,7 @@
 
 This module introduces **Prompt Chains** - connecting prompt templates with models using the pipe operator (`|`) in LangChain.
 
+<!-- lesson:page What are Prompt Chains? -->
 ## What are Prompt Chains?
 
 Prompt chains allow you to connect LangChain components together in a clean, readable way. The pipe operator (`|`) lets you:
@@ -17,6 +18,7 @@ Prompt chains allow you to connect LangChain components together in a clean, rea
 - **Prompt Template Chaining**: Connecting prompt templates with LLMs
 - **Chain Invocation**: How to invoke chains with input variables
 
+<!-- lesson:page How Prompt Chains Work -->
 ## How Prompt Chains Work
 
 A prompt chain connects a prompt template with a model using the pipe operator:
@@ -45,6 +47,85 @@ Formatted: "You are a helpful AI assistant. Answer the question: What is LangCha
     ↓
 Output: Response from the model
 ```
+
+## Understanding Prompt Chain Structure
+
+Let's break down how a prompt chain works using our example:
+
+```python
+# Step 1: Create a prompt template
+template = "You are a helpful AI assistant. Answer the question: {question}"
+prompt = PromptTemplate.from_template(template=template)
+
+# Step 2: Create a chain using the pipe operator
+llm_chain = prompt | llm
+
+# Step 3: Invoke the chain with input variables
+response = llm_chain.invoke({"question": "How does LangChain make LLM application development easier?"})
+```
+
+### Key Components:
+
+1. **Prompt Template** - `PromptTemplate.from_template()`
+   - Creates a reusable template with variable placeholders
+   - Variables are defined using `{variable_name}` syntax
+
+2. **Pipe Operator (`|`)** - Connects components
+   - `prompt | llm` chains the prompt template with the model
+   - The pipe operator is LangChain's way of connecting components
+
+3. **Chain Invocation** - `.invoke()`
+   - Takes a dictionary with variable values
+   - Automatically formats the template → sends to LLM → returns response
+
+<!-- lesson:page The Pipe Operator Pattern -->
+### The Magic of the Pipe Operator:
+
+The pipe operator (`|`) is a clean, Pythonic way to connect LangChain components. Instead of:
+```python
+# Manual approach (more verbose)
+formatted = prompt.format(question="What is LangChain?")
+response = llm.invoke(formatted)
+```
+
+You can write:
+```python
+# Chain approach (cleaner)
+chain = prompt | llm
+response = chain.invoke({"question": "What is LangChain?"})
+```
+
+## The Pipe Operator Pattern
+
+The pipe operator (`|`) is a powerful pattern in LangChain that works with many components:
+
+- `prompt | llm` - Chain prompt with model
+- `prompt1 | prompt2 | llm` - Chain multiple prompts
+- `chain1 | chain2` - Chain multiple chains together
+
+This pattern makes it easy to build complex workflows from simple components!
+
+## Code Examples
+
+### Prompt Chain Example (`prompt_chain_example.py`)
+
+The example demonstrates:
+- **Creating a prompt template** with `PromptTemplate.from_template()`
+- **Chaining the template with a model** using the pipe operator (`|`)
+- **Invoking the chain** with `.invoke()` and a dictionary of variables
+- **Understanding the flow** from template → model → response
+
+<!-- lesson:page Key Benefits -->
+## Key Benefits
+
+| Feature | Without Chains | With Chains |
+|---------|----------------|-------------|
+| **Code Clarity** | Multiple steps, verbose | Single line: `prompt \| llm` |
+| **Reusability** | Hard to reuse | Chain can be reused multiple times |
+| **Maintainability** | Changes in multiple places | Update chain definition once |
+| **Readability** | Less intuitive flow | Clear component connections |
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -223,81 +304,6 @@ By completing the challenge, you'll reinforce:
 - The syntax for chaining components
 - How to invoke chains with variables
 - Practical application of the concepts
-
-## Understanding Prompt Chain Structure
-
-Let's break down how a prompt chain works using our example:
-
-```python
-# Step 1: Create a prompt template
-template = "You are a helpful AI assistant. Answer the question: {question}"
-prompt = PromptTemplate.from_template(template=template)
-
-# Step 2: Create a chain using the pipe operator
-llm_chain = prompt | llm
-
-# Step 3: Invoke the chain with input variables
-response = llm_chain.invoke({"question": "How does LangChain make LLM application development easier?"})
-```
-
-### Key Components:
-
-1. **Prompt Template** - `PromptTemplate.from_template()`
-   - Creates a reusable template with variable placeholders
-   - Variables are defined using `{variable_name}` syntax
-
-2. **Pipe Operator (`|`)** - Connects components
-   - `prompt | llm` chains the prompt template with the model
-   - The pipe operator is LangChain's way of connecting components
-
-3. **Chain Invocation** - `.invoke()`
-   - Takes a dictionary with variable values
-   - Automatically formats the template → sends to LLM → returns response
-
-### The Magic of the Pipe Operator:
-
-The pipe operator (`|`) is a clean, Pythonic way to connect LangChain components. Instead of:
-```python
-# Manual approach (more verbose)
-formatted = prompt.format(question="What is LangChain?")
-response = llm.invoke(formatted)
-```
-
-You can write:
-```python
-# Chain approach (cleaner)
-chain = prompt | llm
-response = chain.invoke({"question": "What is LangChain?"})
-```
-
-## Code Examples
-
-### Prompt Chain Example (`prompt_chain_example.py`)
-
-The example demonstrates:
-- **Creating a prompt template** with `PromptTemplate.from_template()`
-- **Chaining the template with a model** using the pipe operator (`|`)
-- **Invoking the chain** with `.invoke()` and a dictionary of variables
-- **Understanding the flow** from template → model → response
-
-## Key Benefits
-
-| Feature | Without Chains | With Chains |
-|---------|----------------|-------------|
-| **Code Clarity** | Multiple steps, verbose | Single line: `prompt \| llm` |
-| **Reusability** | Hard to reuse | Chain can be reused multiple times |
-| **Maintainability** | Changes in multiple places | Update chain definition once |
-| **Readability** | Less intuitive flow | Clear component connections |
-
-## The Pipe Operator Pattern
-
-The pipe operator (`|`) is a powerful pattern in LangChain that works with many components:
-
-- `prompt | llm` - Chain prompt with model
-- `prompt1 | prompt2 | llm` - Chain multiple prompts
-- `chain1 | chain2` - Chain multiple chains together
-
-This pattern makes it easy to build complex workflows from simple components!
 
 ## Next Steps
 

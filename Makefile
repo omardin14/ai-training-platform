@@ -1,4 +1,4 @@
-.PHONY: help run quiz challenge clean setup install list
+.PHONY: help run quiz challenge clean setup install list learn
 
 MODULES = \
   01-langchain-models \
@@ -35,15 +35,13 @@ else
 	@echo "=================================="
 	@echo ""
 	@echo "Usage:"
-	@echo "  make run M=01         - Run module 01 (or any number/name)"
-	@echo "  make run              - Interactive module picker"
-	@echo "  make quiz M=01        - Take module 01 quiz"
-	@echo "  make challenge M=01   - Run module 01 challenge"
+	@echo "  make learn            - Interactive learning tool (lessons, quizzes, challenges, examples)"
+	@echo ""
+	@echo "  make run M=01         - Run module 01 examples directly"
 	@echo "  make setup            - Create .env file from template"
 	@echo "  make install M=01     - Install dependencies for module 01"
 	@echo "  make clean M=01       - Clean module 01"
 	@echo "  make list             - Show all available modules"
-	@echo "  make help M=01        - Show help for module 01"
 	@echo ""
 endif
 
@@ -99,3 +97,11 @@ list:
 	@echo ""
 	@echo "Usage: make run M=01  (or any module number/name)"
 	@echo ""
+
+learn:
+	@if [ ! -d venv ]; then \
+		echo "Creating virtual environment..."; \
+		python3 -m venv venv; \
+	fi
+	@venv/bin/pip install -q -r requirements.txt 2>/dev/null
+	@venv/bin/python learn.py

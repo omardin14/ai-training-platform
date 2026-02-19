@@ -2,6 +2,7 @@
 
 This module introduces **advanced splitting methods** that go beyond simple character-based splitting. These methods address limitations of basic splitters and significantly improve the quality of RAG (Retrieval-Augmented Generation) applications.
 
+<!-- lesson:page Limitations of Character-Based Splitting -->
 ## Overview
 
 While character-based text splitters are simple and effective for many use cases, they have limitations:
@@ -36,6 +37,7 @@ With a character text splitter with `chunk_size=500` and `chunk_overlap=50`:
 - A 500-character chunk might be 100 tokens or 200 tokens depending on the content
 - This makes it difficult to ensure chunks fit within model limits
 
+<!-- lesson:page Token-Based Splitting -->
 ## Token-Based Splitting
 
 ### What is Token-Based Splitting?
@@ -81,6 +83,7 @@ chunks = token_splitter.split_documents([document])
 - **More accurate size control**: Token count is what matters for LLMs
 - **Model-specific**: Can use the exact encoding for your target model
 
+<!-- lesson:page Semantic Splitting -->
 ## Semantic Splitting
 
 ### What is Semantic Splitting?
@@ -146,6 +149,57 @@ chunks = semantic_splitter.split_documents([document])
 - **Semantic splitting**: Splitting based on semantic meaning shifts
 - **Embeddings for splitting**: Using embeddings to detect topic boundaries
 - **Context window management**: Ensuring chunks fit within model limits
+
+<!-- lesson:page When to Use Each Method -->
+## When to Use Each Method
+
+### Character-Based Splitting
+- **Use when**: Simple documents, no strict token limits
+- **Pros**: Fast, simple, no API calls needed
+- **Cons**: May break context, risk of exceeding context windows
+
+### Token-Based Splitting
+- **Use when**: Need to ensure chunks fit within model context windows
+- **Pros**: Accurate size control, respects token limits
+- **Cons**: Requires tiktoken, model-specific encoding
+
+### Semantic Splitting
+- **Use when**: Need to preserve semantic coherence, complex documents
+- **Pros**: Natural boundaries, better context preservation
+- **Cons**: Requires embeddings API, slower, more expensive
+
+## Best Practices
+
+1. **Choose the Right Method**
+   - Use token-based splitting when working with specific models
+   - Use semantic splitting for complex documents with multiple topics
+   - Combine methods when appropriate
+
+2. **Tune Parameters**
+   - For token splitting: Match chunk_size to your model's context window
+   - For semantic splitting: Adjust threshold based on document complexity
+
+3. **Consider Costs**
+   - Semantic splitting requires API calls (embeddings)
+   - Token splitting is free but requires tiktoken
+   - Character splitting is the fastest and cheapest
+
+4. **Test and Iterate**
+   - Try different methods on your documents
+   - Measure retrieval quality
+   - Adjust based on results
+
+## Summary
+
+This module introduced:
+- **Token-based splitting** for accurate size control
+- **Semantic splitting** for preserving context
+- **Trade-offs** between different splitting methods
+- **Best practices** for choosing and tuning splitters
+
+These advanced methods significantly improve RAG application quality by ensuring chunks are appropriately sized and semantically coherent.
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -267,7 +321,7 @@ This example demonstrates:
    ```python
    import tiktoken
    from langchain_text_splitters import TokenTextSplitter
-   
+
    encoding = tiktoken.encoding_for_model('gpt-4o-mini')
    token_splitter = TokenTextSplitter(
        encoding_name=encoding.name,
@@ -281,7 +335,7 @@ This example demonstrates:
    ```python
    from langchain_openai import OpenAIEmbeddings
    from langchain_experimental.text_splitter import SemanticChunker
-   
+
    embedding_model = OpenAIEmbeddings(model='text-embedding-3-small')
    semantic_splitter = SemanticChunker(
        embeddings=embedding_model,
@@ -290,44 +344,6 @@ This example demonstrates:
    )
    chunks = semantic_splitter.split_documents([document])
    ```
-
-## When to Use Each Method
-
-### Character-Based Splitting
-- **Use when**: Simple documents, no strict token limits
-- **Pros**: Fast, simple, no API calls needed
-- **Cons**: May break context, risk of exceeding context windows
-
-### Token-Based Splitting
-- **Use when**: Need to ensure chunks fit within model context windows
-- **Pros**: Accurate size control, respects token limits
-- **Cons**: Requires tiktoken, model-specific encoding
-
-### Semantic Splitting
-- **Use when**: Need to preserve semantic coherence, complex documents
-- **Pros**: Natural boundaries, better context preservation
-- **Cons**: Requires embeddings API, slower, more expensive
-
-## Best Practices
-
-1. **Choose the Right Method**
-   - Use token-based splitting when working with specific models
-   - Use semantic splitting for complex documents with multiple topics
-   - Combine methods when appropriate
-
-2. **Tune Parameters**
-   - For token splitting: Match chunk_size to your model's context window
-   - For semantic splitting: Adjust threshold based on document complexity
-
-3. **Consider Costs**
-   - Semantic splitting requires API calls (embeddings)
-   - Token splitting is free but requires tiktoken
-   - Character splitting is the fastest and cheapest
-
-4. **Test and Iterate**
-   - Try different methods on your documents
-   - Measure retrieval quality
-   - Adjust based on results
 
 ## Common Issues and Solutions
 
@@ -347,7 +363,7 @@ except KeyError:
 
 **Problem:** Semantic splitting takes too long.
 
-**Solution:** 
+**Solution:**
 - Reduce document size before splitting
 - Use a faster embedding model
 - Consider token-based splitting for large documents
@@ -388,13 +404,3 @@ The challenge tests your ability to:
 - Set up token-based splitting
 - Configure semantic splitting
 - Use embeddings for splitting
-
-## Summary
-
-This module introduced:
-- **Token-based splitting** for accurate size control
-- **Semantic splitting** for preserving context
-- **Trade-offs** between different splitting methods
-- **Best practices** for choosing and tuning splitters
-
-These advanced methods significantly improve RAG application quality by ensuring chunks are appropriately sized and semantically coherent.

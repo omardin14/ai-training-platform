@@ -2,6 +2,7 @@
 
 This module introduces **Custom Tools** - how to create your own tools for ReAct agents to extend their capabilities with domain-specific functions.
 
+<!-- lesson:page What are Custom Tools? -->
 ## What are Custom Tools?
 
 Custom tools are functions that you create and make available to ReAct agents. They allow you to:
@@ -40,6 +41,166 @@ Agent reasons: "This question needs the tool"
   ↓
 Agent calls tool → Gets result → Answers question
 ```
+
+<!-- lesson:page The @tool Decorator -->
+## Understanding Custom Tool Structure
+
+Let's break down how a custom tool works:
+
+```python
+# Step 1: Import the @tool decorator
+from langchain_core.tools import tool
+
+# Step 2: Define a function with a docstring
+@tool
+def get_product_info(product_id: str) -> str:
+    """Retrieve product information from inventory based on product ID."""
+    # Your function logic here
+    return result
+
+# Step 3: Use the tool with an agent
+from langgraph.prebuilt import create_react_agent
+agent = create_react_agent(llm, [get_product_info])
+
+# Step 4: Invoke the agent
+response = agent.invoke({"messages": [("human", "What is the price of laptop-pro-15?")]})
+```
+
+### Key Components:
+
+1. **Function Definition**: A regular Python function with type hints
+   - The function's docstring becomes the tool's description
+   - The LLM uses this description to decide when to call the tool
+
+2. **@tool Decorator**: Converts the function to a tool
+   - Automatically extracts name, description, and args
+   - Makes the function usable by agents
+
+3. **Tool Attributes**: Tools have important attributes
+   - `.name`: The tool's name (from function name)
+   - `.description`: The tool's description (from docstring)
+   - `.args`: The tool's input arguments schema
+
+4. **Agent Integration**: Pass tools to the agent
+   - Agent uses tool descriptions to decide when to call them
+   - Agent automatically formats tool calls and processes results
+
+### The Flow:
+
+```
+User Question: "What is the price of laptop-pro-15?"
+  ↓
+Agent receives question
+  ↓
+Agent reasons: "I need product information"
+  ↓
+Agent sees get_product_info tool description matches
+  ↓
+Agent calls get_product_info("laptop-pro-15")
+  ↓
+Tool returns: "Product: Laptop Pro 15\nPrice: $1299.99..."
+  ↓
+Agent formulates answer: "The price is $1299.99"
+```
+
+<!-- lesson:page Key Concepts -->
+## Key Concepts Explained
+
+### The @tool Decorator
+
+The `@tool` decorator is imported from `langchain_core.tools`:
+```python
+from langchain_core.tools import tool
+
+@tool
+def my_function(param: str) -> str:
+    """This docstring becomes the tool's description."""
+    return result
+```
+
+The decorator:
+- Converts the function to a tool
+- Extracts the name from the function name
+- Uses the docstring as the tool's description
+- Infers the arguments schema from type hints
+
+### Tool Description
+
+The tool's description (from the docstring) is crucial:
+- **The LLM uses it to decide when to call the tool**
+- Should clearly describe what the tool does
+- Should mention when it's useful
+- Example: "Retrieve product information from inventory based on product ID"
+
+### Tool Attributes
+
+Custom tools have three key attributes:
+
+1. **`.name`**: The tool's name (from function name)
+   ```python
+   tool.name  # "get_product_info"
+   ```
+
+2. **`.description`**: The tool's description (from docstring)
+   ```python
+   tool.description  # "Retrieve product information..."
+   ```
+
+3. **`.args`**: The tool's input arguments schema
+   ```python
+   tool.args  # Shows parameter types and requirements
+   ```
+
+<!-- lesson:page Using Tools with Agents -->
+### Using Tools with Agents
+
+To use custom tools with ReAct agents:
+
+```python
+from langgraph.prebuilt import create_react_agent
+
+# Pass tools as a list
+agent = create_react_agent(llm, [tool1, tool2, tool3])
+
+# The agent will use tool descriptions to decide when to call them
+response = agent.invoke({"messages": [("human", "question")]})
+```
+
+The agent automatically:
+- Analyzes the question
+- Matches it against tool descriptions
+- Calls appropriate tools
+- Uses tool outputs to answer
+
+## Code Examples
+
+### Custom Tool Example (`custom_tool_example.py`)
+
+This example demonstrates:
+- Creating a custom tool using the `@tool` decorator
+- Understanding tool attributes (name, description, args)
+- Using custom tools with ReAct agents
+- How agents decide when to use custom tools
+
+**Key Features:**
+- Defines a product inventory lookup function
+- Converts it to a tool with `@tool` decorator
+- Shows tool attributes (name, description, args)
+- Uses the tool with a ReAct agent
+- Demonstrates how the agent uses the tool automatically
+
+## Summary
+
+Custom tools enable you to:
+- ✅ Create domain-specific functions for agents
+- ✅ Extend agent capabilities beyond pre-built tools
+- ✅ Integrate with your own systems and data
+- ✅ Control tool behavior with custom logic
+- ✅ Build specialized agents for specific use cases
+
+This is a powerful pattern for building intelligent systems tailored to your specific needs!
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -157,150 +318,6 @@ source venv/bin/activate  # On macOS/Linux
 python custom_tool_example.py
 ```
 
-## Understanding Custom Tool Structure
-
-Let's break down how a custom tool works:
-
-```python
-# Step 1: Import the @tool decorator
-from langchain_core.tools import tool
-
-# Step 2: Define a function with a docstring
-@tool
-def get_product_info(product_id: str) -> str:
-    """Retrieve product information from inventory based on product ID."""
-    # Your function logic here
-    return result
-
-# Step 3: Use the tool with an agent
-from langgraph.prebuilt import create_react_agent
-agent = create_react_agent(llm, [get_product_info])
-
-# Step 4: Invoke the agent
-response = agent.invoke({"messages": [("human", "What is the price of laptop-pro-15?")]})
-```
-
-### Key Components:
-
-1. **Function Definition**: A regular Python function with type hints
-   - The function's docstring becomes the tool's description
-   - The LLM uses this description to decide when to call the tool
-
-2. **@tool Decorator**: Converts the function to a tool
-   - Automatically extracts name, description, and args
-   - Makes the function usable by agents
-
-3. **Tool Attributes**: Tools have important attributes
-   - `.name`: The tool's name (from function name)
-   - `.description`: The tool's description (from docstring)
-   - `.args`: The tool's input arguments schema
-
-4. **Agent Integration**: Pass tools to the agent
-   - Agent uses tool descriptions to decide when to call them
-   - Agent automatically formats tool calls and processes results
-
-### The Flow:
-
-```
-User Question: "What is the price of laptop-pro-15?"
-  ↓
-Agent receives question
-  ↓
-Agent reasons: "I need product information"
-  ↓
-Agent sees get_product_info tool description matches
-  ↓
-Agent calls get_product_info("laptop-pro-15")
-  ↓
-Tool returns: "Product: Laptop Pro 15\nPrice: $1299.99..."
-  ↓
-Agent formulates answer: "The price is $1299.99"
-```
-
-## Code Examples
-
-### Custom Tool Example (`custom_tool_example.py`)
-
-This example demonstrates:
-- Creating a custom tool using the `@tool` decorator
-- Understanding tool attributes (name, description, args)
-- Using custom tools with ReAct agents
-- How agents decide when to use custom tools
-
-**Key Features:**
-- Defines a product inventory lookup function
-- Converts it to a tool with `@tool` decorator
-- Shows tool attributes (name, description, args)
-- Uses the tool with a ReAct agent
-- Demonstrates how the agent uses the tool automatically
-
-## Key Concepts Explained
-
-### The @tool Decorator
-
-The `@tool` decorator is imported from `langchain_core.tools`:
-```python
-from langchain_core.tools import tool
-
-@tool
-def my_function(param: str) -> str:
-    """This docstring becomes the tool's description."""
-    return result
-```
-
-The decorator:
-- Converts the function to a tool
-- Extracts the name from the function name
-- Uses the docstring as the tool's description
-- Infers the arguments schema from type hints
-
-### Tool Description
-
-The tool's description (from the docstring) is crucial:
-- **The LLM uses it to decide when to call the tool**
-- Should clearly describe what the tool does
-- Should mention when it's useful
-- Example: "Retrieve product information from inventory based on product ID"
-
-### Tool Attributes
-
-Custom tools have three key attributes:
-
-1. **`.name`**: The tool's name (from function name)
-   ```python
-   tool.name  # "get_product_info"
-   ```
-
-2. **`.description`**: The tool's description (from docstring)
-   ```python
-   tool.description  # "Retrieve product information..."
-   ```
-
-3. **`.args`**: The tool's input arguments schema
-   ```python
-   tool.args  # Shows parameter types and requirements
-   ```
-
-### Using Tools with Agents
-
-To use custom tools with ReAct agents:
-
-```python
-from langgraph.prebuilt import create_react_agent
-
-# Pass tools as a list
-agent = create_react_agent(llm, [tool1, tool2, tool3])
-
-# The agent will use tool descriptions to decide when to call them
-response = agent.invoke({"messages": [("human", "question")]})
-```
-
-The agent automatically:
-- Analyzes the question
-- Matches it against tool descriptions
-- Calls appropriate tools
-- Uses tool outputs to answer
-
 ## Quiz
 
 Test your understanding of custom tools! Run:
@@ -354,15 +371,3 @@ If you encounter issues:
 3. Try running the example directly: `python custom_tool_example.py`
 4. Check the error messages for specific guidance
 5. Ensure your tool's docstring is clear and descriptive
-
-## Summary
-
-Custom tools enable you to:
-- ✅ Create domain-specific functions for agents
-- ✅ Extend agent capabilities beyond pre-built tools
-- ✅ Integrate with your own systems and data
-- ✅ Control tool behavior with custom logic
-- ✅ Build specialized agents for specific use cases
-
-This is a powerful pattern for building intelligent systems tailored to your specific needs!
-

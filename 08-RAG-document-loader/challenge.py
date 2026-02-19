@@ -21,7 +21,7 @@ from langchain_community.document_loaders import XXXX___
 
 # Step 2: Create a loader instance for a PDF file
 # Replace XXXX___ with the correct class name
-file_path = "../utils/docs/example.pdf"
+file_path = "../utils/docs/sample_document.pdf"
 loader = XXXX___(file_path)
 
 # Step 3: Load the document

@@ -2,6 +2,7 @@
 
 This module introduces **Few-Shot Prompts** - providing examples to the model to help it understand the desired format and behavior.
 
+<!-- lesson:page What are Few-Shot Prompts? -->
 ## What are Few-Shot Prompts?
 
 Few-shot prompting is a technique where you provide the model with a few examples of the task you want it to perform. This helps the model:
@@ -17,6 +18,7 @@ Few-shot prompting is a technique where you provide the model with a few example
 - **Example Templates**: Structuring examples for the model
 - **FewShotPromptTemplate**: LangChain's class for creating few-shot prompts
 
+<!-- lesson:page How Few-Shot Prompts Work -->
 ## How Few-Shot Prompts Work
 
 A few-shot prompt includes:
@@ -36,6 +38,74 @@ Your Question: {input}
 ```
 
 The model learns from the examples and applies the same pattern to your question.
+
+## Understanding Few-Shot Prompt Structure
+
+Let's break down how a few-shot prompt works:
+
+```python
+# Step 1: Define examples
+examples = [
+    {"input": "happy", "output": "joyful"},
+    {"input": "sad", "output": "melancholy"},
+    {"input": "angry", "output": "furious"}
+]
+
+# Step 2: Create a template for formatting each example
+example_prompt = PromptTemplate.from_template("Word: {input}\nSynonym: {output}")
+
+# Step 3: Create the few-shot prompt template
+prompt_template = FewShotPromptTemplate(
+    examples=examples,
+    example_prompt=example_prompt,
+    suffix="Word: {input}",
+    input_variables=["input"]
+)
+```
+
+### Key Components:
+
+1. **Examples List** - A list of dictionaries showing input/output pairs
+2. **Example Prompt** - A template that formats each example consistently
+3. **FewShotPromptTemplate** - Combines examples with your actual question
+4. **Suffix** - The format for your actual input question
+
+### The Flow:
+
+```
+Examples:
+  Word: happy → Synonym: joyful
+  Word: sad → Synonym: melancholy
+  Word: angry → Synonym: furious
+---
+Your Question:
+  Word: excited
+```
+
+The model sees the pattern and generates: "Synonym: thrilled"
+
+<!-- lesson:page Code Examples and Key Benefits -->
+## Code Examples
+
+### Few-Shot Example (`few_shot_example.py`)
+
+The example demonstrates:
+- **Creating examples** as a list of dictionaries
+- **Formatting examples** with an example prompt template
+- **Building a few-shot prompt** with `FewShotPromptTemplate`
+- **Using the prompt** with a model to get responses following the example pattern
+
+## Key Benefits
+
+| Feature | Zero-Shot | Few-Shot |
+|---------|-----------|----------|
+| **Examples Provided** | None | 2-5 examples |
+| **Accuracy** | Good | Better (learns from examples) |
+| **Format Consistency** | May vary | Follows example format |
+| **Pattern Recognition** | Limited | Learns the pattern |
+| **Use Case** | Simple tasks | Complex or specific formats |
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -141,71 +211,6 @@ source venv/bin/activate  # On macOS/Linux
 python few_shot_example.py
 ```
 
-## Understanding Few-Shot Prompt Structure
-
-Let's break down how a few-shot prompt works:
-
-```python
-# Step 1: Define examples
-examples = [
-    {"input": "happy", "output": "joyful"},
-    {"input": "sad", "output": "melancholy"},
-    {"input": "angry", "output": "furious"}
-]
-
-# Step 2: Create a template for formatting each example
-example_prompt = PromptTemplate.from_template("Word: {input}\nSynonym: {output}")
-
-# Step 3: Create the few-shot prompt template
-prompt_template = FewShotPromptTemplate(
-    examples=examples,
-    example_prompt=example_prompt,
-    suffix="Word: {input}",
-    input_variables=["input"]
-)
-```
-
-### Key Components:
-
-1. **Examples List** - A list of dictionaries showing input/output pairs
-2. **Example Prompt** - A template that formats each example consistently
-3. **FewShotPromptTemplate** - Combines examples with your actual question
-4. **Suffix** - The format for your actual input question
-
-### The Flow:
-
-```
-Examples:
-  Word: happy → Synonym: joyful
-  Word: sad → Synonym: melancholy
-  Word: angry → Synonym: furious
----
-Your Question:
-  Word: excited
-```
-
-The model sees the pattern and generates: "Synonym: thrilled"
-
-## Code Examples
-
-### Few-Shot Example (`few_shot_example.py`)
-
-The example demonstrates:
-- **Creating examples** as a list of dictionaries
-- **Formatting examples** with an example prompt template
-- **Building a few-shot prompt** with `FewShotPromptTemplate`
-- **Using the prompt** with a model to get responses following the example pattern
-
-## Key Benefits
-
-| Feature | Zero-Shot | Few-Shot |
-|---------|-----------|----------|
-| **Examples Provided** | None | 2-5 examples |
-| **Accuracy** | Good | Better (learns from examples) |
-| **Format Consistency** | May vary | Follows example format |
-| **Pattern Recognition** | Limited | Learns the pattern |
-| **Use Case** | Simple tasks | Complex or specific formats |
-
 ## Test Your Knowledge
 
 After running the examples, test your understanding with the interactive quiz:
@@ -284,4 +289,3 @@ By completing the challenge, you'll reinforce:
 
 After understanding few-shot prompts, proceed to:
 - **05-sequential-chain**: Discover more advanced chaining patterns with multiple steps
-

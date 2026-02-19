@@ -2,6 +2,7 @@
 
 This module introduces **evaluation methods for RAG (Retrieval-Augmented Generation) applications**. Evaluating RAG systems is crucial for measuring performance, identifying issues, and improving the quality of your applications.
 
+<!-- lesson:page Evaluating RAG Applications -->
 ## Overview
 
 RAG architecture is made up of several processes, and there are a few places where performance can be measured:
@@ -43,6 +44,7 @@ RAG architecture consists of multiple interconnected processes. To improve and o
    - Is the final answer correct and useful?
    - Does it meet user expectations?
 
+<!-- lesson:page Output Analysis -->
 ## Output Analysis
 
 ### Using LLMs to Evaluate Correctness
@@ -104,6 +106,7 @@ result = eval_chain.invoke({
 # Returns: INCORRECT (score: 0)
 ```
 
+<!-- lesson:page RAGAS and Faithfulness -->
 ## RAGAS (RAG Assessment)
 
 **RAGAS** was designed to evaluate both the retrieval and generation components of a RAG application. It provides specialized metrics that go beyond simple correctness checks.
@@ -169,6 +172,7 @@ eval_result = faithfulness_chain({
 print(eval_result['faithfulness'])  # Output: 1.0 (perfect faithfulness)
 ```
 
+<!-- lesson:page Context Precision and Best Practices -->
 ## Context Precision Metric
 
 ### What is Context Precision?
@@ -219,6 +223,61 @@ eval_result = context_precision_chain({
 print(f"Context Precision: {eval_result['context_precision']}")
 # Output: Context Precision: 0.67 (2 out of 3 contexts are highly relevant)
 ```
+
+## When to Use Each Evaluation Method
+
+### Use Output Analysis When:
+- You have reference answers
+- You want simple correctness checking
+- You need quick evaluation
+- You're evaluating final outputs only
+
+### Use Faithfulness When:
+- You want to detect hallucination
+- You need to verify answer is derived from context
+- You're evaluating generation quality
+- You want to measure claim accuracy
+
+### Use Context Precision When:
+- You want to evaluate retrieval quality
+- You need to measure document relevance
+- You're optimizing the retriever
+- You want to check ranking quality
+
+## Best Practices
+
+1. **Set Temperature to Zero**
+   - Use `temperature=0` for evaluation LLMs
+   - Minimizes variability in evaluation results
+   - Ensures consistent scoring
+
+2. **Use Multiple Metrics**
+   - Don't rely on a single metric
+   - Combine faithfulness and context precision
+   - Evaluate both retrieval and generation
+
+3. **Create Good Reference Answers**
+   - Use high-quality ground truth
+   - Ensure reference answers are accurate
+   - Consider multiple valid answers
+
+4. **Evaluate Regularly**
+   - Set up evaluation pipelines
+   - Monitor metrics over time
+   - Track improvements and regressions
+
+## Summary
+
+This module introduced:
+- **Output Analysis**: Using LLMs to evaluate correctness
+- **RAGAS Framework**: Comprehensive RAG evaluation
+- **Faithfulness Metric**: Measuring if output is derived from context
+- **Context Precision Metric**: Measuring relevance of retrieved documents
+- **Performance Measurement**: Evaluating different RAG components
+
+Evaluating RAG applications is essential for building high-quality systems. These tools help you measure, understand, and improve your RAG applications at every stage.
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -336,7 +395,7 @@ This example demonstrates:
    ```python
    from langchain_openai import ChatOpenAI
    from langchain_core.prompts import PromptTemplate
-   
+
    eval_llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
    prompt = PromptTemplate(...)
    eval_chain = prompt | eval_llm
@@ -347,7 +406,7 @@ This example demonstrates:
    ```python
    from ragas.integrations.langchain import EvaluatorChain
    from ragas.metrics import faithfulness
-   
+
    faithfulness_chain = EvaluatorChain(
        metric=faithfulness,
        llm=llm,
@@ -359,7 +418,7 @@ This example demonstrates:
 3. **Context Precision Evaluation**:
    ```python
    from ragas.metrics import context_precision
-   
+
    context_precision_chain = EvaluatorChain(
        metric=context_precision,
        llm=llm,
@@ -367,48 +426,6 @@ This example demonstrates:
    )
    result = context_precision_chain({"question": ..., "ground_truth": ..., "contexts": ...})
    ```
-
-## When to Use Each Evaluation Method
-
-### Use Output Analysis When:
-- You have reference answers
-- You want simple correctness checking
-- You need quick evaluation
-- You're evaluating final outputs only
-
-### Use Faithfulness When:
-- You want to detect hallucination
-- You need to verify answer is derived from context
-- You're evaluating generation quality
-- You want to measure claim accuracy
-
-### Use Context Precision When:
-- You want to evaluate retrieval quality
-- You need to measure document relevance
-- You're optimizing the retriever
-- You want to check ranking quality
-
-## Best Practices
-
-1. **Set Temperature to Zero**
-   - Use `temperature=0` for evaluation LLMs
-   - Minimizes variability in evaluation results
-   - Ensures consistent scoring
-
-2. **Use Multiple Metrics**
-   - Don't rely on a single metric
-   - Combine faithfulness and context precision
-   - Evaluate both retrieval and generation
-
-3. **Create Good Reference Answers**
-   - Use high-quality ground truth
-   - Ensure reference answers are accurate
-   - Consider multiple valid answers
-
-4. **Evaluate Regularly**
-   - Set up evaluation pipelines
-   - Monitor metrics over time
-   - Track improvements and regressions
 
 ## Common Issues and Solutions
 
@@ -468,14 +485,3 @@ The challenge tests your ability to:
 - Create evaluation prompt templates
 - Set up RAGAS evaluators
 - Use faithfulness metrics
-
-## Summary
-
-This module introduced:
-- **Output Analysis**: Using LLMs to evaluate correctness
-- **RAGAS Framework**: Comprehensive RAG evaluation
-- **Faithfulness Metric**: Measuring if output is derived from context
-- **Context Precision Metric**: Measuring relevance of retrieved documents
-- **Performance Measurement**: Evaluating different RAG components
-
-Evaluating RAG applications is essential for building high-quality systems. These tools help you measure, understand, and improve your RAG applications at every stage.

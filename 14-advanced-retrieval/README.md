@@ -2,6 +2,7 @@
 
 This module introduces **advanced retrieval methods** that go beyond simple vector similarity search. We'll explore both **dense** and **sparse** retrieval techniques, each with their own strengths and use cases.
 
+<!-- lesson:page Dense Retrieval -->
 ## Overview
 
 Traditional RAG applications use vector databases with embeddings for document retrieval. However, different retrieval methods excel in different scenarios:
@@ -55,6 +56,7 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 results = retriever.invoke("What is LangChain used for?")
 ```
 
+<!-- lesson:page Sparse Retrieval: TF-IDF and BM25 -->
 ## Sparse Retrieval
 
 ### What is Sparse Retrieval?
@@ -106,6 +108,7 @@ When asking "When was football created?" in a paragraph with multiple facts abou
 - BM25 returns the statement with similar terms to the input that were also unique to that statement
 - It identifies the most relevant sentence based on term matching and uniqueness
 
+<!-- lesson:page BM25Retriever in LangChain -->
 ### BM25Retriever in LangChain
 
 ```python
@@ -169,6 +172,59 @@ answer = chain.invoke("How can LLM hallucination impact a RAG application?")
 - **BM25**: Best Matching 25 algorithm
 - **Retriever Comparison**: When to use each method
 - **RAG Integration**: Using sparse retrievers in RAG chains
+
+<!-- lesson:page When to Use Each Method -->
+## When to Use Each Method
+
+### Use Dense Retrieval When:
+- You need semantic understanding
+- Queries are conceptual rather than keyword-based
+- Documents contain related concepts
+- You want to find similar content without exact word matches
+
+### Use Sparse Retrieval When:
+- You need exact keyword matching
+- Queries contain specific technical terms
+- Rare words are important
+- You need explainable results
+- You want to avoid embedding costs
+
+### Combine Both Methods:
+- **Hybrid Retrieval**: Use both methods and combine results
+- **Best of both worlds**: Semantic understanding + exact matching
+- **Improved recall**: Catch more relevant documents
+
+## Best Practices
+
+1. **Choose Based on Use Case**
+   - Dense for semantic queries
+   - Sparse for keyword queries
+   - Hybrid for best results
+
+2. **Tune Parameters**
+   - For BM25: Adjust `k` (number of results)
+   - For dense: Adjust similarity threshold
+
+3. **Consider Costs**
+   - Dense retrieval requires embedding API calls
+   - Sparse retrieval is free but requires preprocessing
+
+4. **Test and Compare**
+   - Try both methods on your queries
+   - Measure retrieval quality
+   - Choose based on results
+
+## Summary
+
+This module introduced:
+- **Dense retrieval** for semantic similarity
+- **Sparse retrieval** for exact keyword matching
+- **TF-IDF and BM25** as sparse retrieval methods
+- **When to use each method** based on your use case
+
+Understanding both dense and sparse retrieval methods allows you to build more effective RAG applications by choosing the right retrieval strategy for your specific needs.
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -288,7 +344,7 @@ This example demonstrates:
    ```python
    from langchain_openai import OpenAIEmbeddings
    from langchain_chroma import Chroma
-   
+
    embeddings = OpenAIEmbeddings(model='text-embedding-3-small')
    vectorstore = Chroma.from_documents(documents, embedding=embeddings)
    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
@@ -298,7 +354,7 @@ This example demonstrates:
 2. **Sparse Retrieval (BM25)**:
    ```python
    from langchain_community.retrievers import BM25Retriever
-   
+
    bm25_retriever = BM25Retriever.from_texts(chunks, k=3)
    results = bm25_retriever.invoke(query)
    ```
@@ -312,46 +368,6 @@ This example demonstrates:
        | StrOutputParser()
    )
    ```
-
-## When to Use Each Method
-
-### Use Dense Retrieval When:
-- You need semantic understanding
-- Queries are conceptual rather than keyword-based
-- Documents contain related concepts
-- You want to find similar content without exact word matches
-
-### Use Sparse Retrieval When:
-- You need exact keyword matching
-- Queries contain specific technical terms
-- Rare words are important
-- You need explainable results
-- You want to avoid embedding costs
-
-### Combine Both Methods:
-- **Hybrid Retrieval**: Use both methods and combine results
-- **Best of both worlds**: Semantic understanding + exact matching
-- **Improved recall**: Catch more relevant documents
-
-## Best Practices
-
-1. **Choose Based on Use Case**
-   - Dense for semantic queries
-   - Sparse for keyword queries
-   - Hybrid for best results
-
-2. **Tune Parameters**
-   - For BM25: Adjust `k` (number of results)
-   - For dense: Adjust similarity threshold
-
-3. **Consider Costs**
-   - Dense retrieval requires embedding API calls
-   - Sparse retrieval is free but requires preprocessing
-
-4. **Test and Compare**
-   - Try both methods on your queries
-   - Measure retrieval quality
-   - Choose based on results
 
 ## Common Issues and Solutions
 
@@ -401,13 +417,3 @@ The challenge tests your ability to:
 - Create a BM25 retriever
 - Query the retriever
 - Use it in a RAG chain
-
-## Summary
-
-This module introduced:
-- **Dense retrieval** for semantic similarity
-- **Sparse retrieval** for exact keyword matching
-- **TF-IDF and BM25** as sparse retrieval methods
-- **When to use each method** based on your use case
-
-Understanding both dense and sparse retrieval methods allows you to build more effective RAG applications by choosing the right retrieval strategy for your specific needs.

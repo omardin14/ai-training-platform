@@ -2,6 +2,7 @@
 
 This module introduces **specialized document loaders** for Markdown and Python files, along with **language-aware text splitters** that understand code structure. These tools are essential for building RAG applications that work with documentation and codebases.
 
+<!-- lesson:page Markdown and Python Loaders -->
 ## Overview
 
 In previous modules, we've covered loading documents from PDF, HTML, and CSV files. This module extends that knowledge to:
@@ -35,6 +36,7 @@ Imagine we have a codebase and would like to have a way to talk with it and ask 
 - **Language-Aware Splitting**: Using `RecursiveCharacterTextSplitter.from_language()` for code
 - **Code Structure Preservation**: Maintaining code structure during splitting
 
+<!-- lesson:page About Markdown Loaders -->
 ## About Markdown Loaders
 
 ### What is Markdown?
@@ -62,6 +64,7 @@ markdown_data = loader.load()
 - Extracts metadata from the document
 - Handles various Markdown formats
 
+<!-- lesson:page About Python Loaders -->
 ## About Python Loaders
 
 ### PythonLoader
@@ -134,6 +137,53 @@ chunks = python_splitter.split_documents(python_data)
 - Plain text documents
 - Markdown documentation (can use regular or language-aware)
 - General text content
+
+<!-- lesson:page Use Cases and Best Practices -->
+## Use Cases
+
+### Markdown Loaders
+
+- **Documentation RAG**: Create RAG applications from technical documentation
+- **Knowledge Bases**: Load README files and documentation into vector stores
+- **Content Management**: Process Markdown-based content systems
+
+### Python Loaders
+
+- **Code Q&A**: Answer questions about codebases
+- **Code Documentation**: Generate documentation from code
+- **Code Analysis**: Analyze and understand codebases
+- **Developer Assistants**: Build assistants that understand your code
+
+## Best Practices
+
+1. **Use Language-Aware Splitters for Code**
+   - Always use `RecursiveCharacterTextSplitter.from_language()` for code files
+   - This preserves code structure and improves retrieval quality
+
+2. **Choose Appropriate Chunk Sizes**
+   - For code: Smaller chunks (200-500 characters) work well
+   - For documentation: Larger chunks (500-1000 characters) may be better
+   - Adjust based on your use case
+
+3. **Maintain Context with Overlap**
+   - Use chunk overlap (50-100 characters) to maintain context
+   - Especially important for code where functions may span multiple chunks
+
+4. **Preserve Metadata**
+   - Keep source file information in metadata
+   - This helps with attribution and debugging
+
+## Summary
+
+This module introduced:
+- **Markdown loaders** for documentation
+- **Python loaders** for source code
+- **Language-aware splitters** that preserve code structure
+- Best practices for handling code and documentation in RAG applications
+
+These tools enable you to build sophisticated RAG applications that can understand and answer questions about both documentation and codebases.
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -250,7 +300,7 @@ This example demonstrates:
 1. **UnstructuredMarkdownLoader**: Loads Markdown documentation
    ```python
    from langchain_community.document_loaders import UnstructuredMarkdownLoader
-   
+
    loader = UnstructuredMarkdownLoader('README.md')
    markdown_data = loader.load()
    ```
@@ -258,7 +308,7 @@ This example demonstrates:
 2. **PythonLoader**: Loads Python source files
    ```python
    from langchain_community.document_loaders import PythonLoader
-   
+
    loader = PythonLoader('rag.py')
    python_data = loader.load()
    ```
@@ -267,7 +317,7 @@ This example demonstrates:
    ```python
    from langchain_text_splitters import RecursiveCharacterTextSplitter
    from langchain_text_splitters import Language
-   
+
    python_splitter = RecursiveCharacterTextSplitter.from_language(
        language=Language.PYTHON,
        chunk_size=300,
@@ -275,40 +325,6 @@ This example demonstrates:
    )
    chunks = python_splitter.split_documents(python_data)
    ```
-
-## Use Cases
-
-### Markdown Loaders
-
-- **Documentation RAG**: Create RAG applications from technical documentation
-- **Knowledge Bases**: Load README files and documentation into vector stores
-- **Content Management**: Process Markdown-based content systems
-
-### Python Loaders
-
-- **Code Q&A**: Answer questions about codebases
-- **Code Documentation**: Generate documentation from code
-- **Code Analysis**: Analyze and understand codebases
-- **Developer Assistants**: Build assistants that understand your code
-
-## Best Practices
-
-1. **Use Language-Aware Splitters for Code**
-   - Always use `RecursiveCharacterTextSplitter.from_language()` for code files
-   - This preserves code structure and improves retrieval quality
-
-2. **Choose Appropriate Chunk Sizes**
-   - For code: Smaller chunks (200-500 characters) work well
-   - For documentation: Larger chunks (500-1000 characters) may be better
-   - Adjust based on your use case
-
-3. **Maintain Context with Overlap**
-   - Use chunk overlap (50-100 characters) to maintain context
-   - Especially important for code where functions may span multiple chunks
-
-4. **Preserve Metadata**
-   - Keep source file information in metadata
-   - This helps with attribution and debugging
 
 ## Common Issues and Solutions
 
@@ -358,13 +374,3 @@ The challenge tests your ability to:
 - Load Markdown files
 - Load Python files
 - Use language-aware splitters
-
-## Summary
-
-This module introduced:
-- **Markdown loaders** for documentation
-- **Python loaders** for source code
-- **Language-aware splitters** that preserve code structure
-- Best practices for handling code and documentation in RAG applications
-
-These tools enable you to build sophisticated RAG applications that can understand and answer questions about both documentation and codebases.

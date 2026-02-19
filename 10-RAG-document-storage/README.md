@@ -2,6 +2,7 @@
 
 This module introduces **Document Storage** - storing documents in vector databases using embeddings for semantic search and retrieval in RAG (Retrieval-Augmented Generation) applications.
 
+<!-- lesson:page What is Document Storage? -->
 ## What is Document Storage?
 
 Document storage with vector databases enables:
@@ -34,6 +35,150 @@ Documents → Split → Embed → Store in Vector DB
 ```
 
 > **Note:** Creating retrievers and building retrieval chains is covered in **module 011 (LCEL Retrieval Chain)**.
+
+<!-- lesson:page Embeddings -->
+## Embeddings
+
+![Document Embedding](../utils/media/rag_document_embedding.png)
+
+**Embeddings** are numerical representations of text. Embedding models aim to capture the "meaning" of the text, and these numbers map the text's position in a high-dimensional, or vector space.
+
+- **When documents are embedded and stored**, similar documents are located closer together in the vector space
+- **When a RAG application receives a user input**, it will be embedded and used to query the database
+
+Embeddings convert text into numerical vectors that capture semantic meaning:
+```python
+from langchain_openai import OpenAIEmbeddings
+
+embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
+# Converts "machine learning" → [0.123, -0.456, 0.789, ...]
+```
+
+Similar texts have similar vectors, enabling semantic search.
+
+<!-- lesson:page Vector Databases and Chroma -->
+## Vector Database (Chroma)
+
+**Vector stores** are databases specifically designed to store and retrieve high-dimensional vector data.
+
+- **One example is using a vector database** to store our documents and make them available for retrieval
+- **This requires embedding our text documents** to create vectors that capture the semantic meaning of the text
+- **Then, a user query can be embedded** to retrieve the most similar documents from the database and insert them into the model prompt
+
+**There are many Vector Databases in LangChain. When making a decision:**
+- Consider whether an **open source solution is required**, which may be the case if high customizability is required
+- Also, consider whether **the data can be stored on off-premises on third-party servers** - not all cases will permit this
+- The **amount of storage and latency of retrieving results** is also a key consideration
+- Sometimes a **lightweight in-memory database will be sufficient**, but others will require something more powerful
+
+![Vector Database Landscape](../utils/media/rag_vector_db.png)
+
+Chroma is a lightweight vector database:
+```python
+from langchain_chroma import Chroma
+
+vectorstore = Chroma.from_documents(
+    documents=split_docs,
+    embedding=embedding_function,
+    persist_directory="./chroma_db"
+)
+```
+
+- Stores embeddings alongside document content
+- Enables fast similarity search
+- Persists to disk for future use
+
+<!-- lesson:page Complete Storage Workflow -->
+## Understanding Document Storage Structure
+
+Let's break down how document storage works:
+
+```python
+# Step 1: Load and split documents
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+loader = PyPDFLoader("document.pdf")
+documents = loader.load()
+splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
+split_docs = splitter.split_documents(documents)
+
+# Step 2: Create embeddings
+from langchain_openai import OpenAIEmbeddings
+embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# Step 3: Store in vector database
+from langchain_chroma import Chroma
+vectorstore = Chroma.from_documents(
+    documents=split_docs,
+    embedding=embedding_function,
+    persist_directory="./chroma_db"
+)
+
+# Step 4: Create retriever
+retriever = vectorstore.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 3}
+)
+
+# Step 5: Query
+results = retriever.get_relevant_documents("your query")
+```
+
+### Key Components:
+
+1. **Embeddings**: Convert text to vectors
+   - `OpenAIEmbeddings`: Uses OpenAI's embedding models
+   - `HuggingFaceEmbeddings`: Uses Hugging Face sentence transformers
+   - Embeddings capture semantic meaning
+
+2. **Vector Database (Chroma)**: Stores embeddings
+   - Lightweight and easy to use
+   - Persists to disk for future use
+   - Enables fast similarity search
+
+### The Flow:
+
+```
+Document Chunks
+  ↓
+Embedding Function
+  ↓
+Vector Embeddings
+  ↓
+Chroma Vector Database
+```
+
+> **Note:** Retrievers and retrieval chains are covered in **module 011 (LCEL Retrieval Chain)**.
+
+## Code Examples
+
+### Document Storage Example (`document_storage_example.py`)
+
+This example demonstrates:
+- Loading documents from PDF files
+- Splitting documents into chunks
+- Creating embeddings (OpenAI or Hugging Face)
+- Storing documents in Chroma vector database
+
+**Key Features:**
+- Complete workflow from loading to storage
+- Supports both OpenAI and Hugging Face embeddings
+- Shows vector database persistence
+- Prepares documents for retrieval (covered in module 011)
+
+## Summary
+
+Document storage with vector databases enables you to:
+- ✅ Convert documents to embeddings
+- ✅ Store embeddings in a vector database
+- ✅ Prepare documents for semantic search and retrieval
+- ✅ Scale to large document collections
+- ✅ Persist embeddings for future use
+
+This is an essential step for building effective RAG applications! The next module (011) will show you how to create retrievers and build retrieval chains.
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -153,137 +298,6 @@ source venv/bin/activate  # On macOS/Linux
 python document_storage_example.py
 ```
 
-## Understanding Document Storage Structure
-
-Let's break down how document storage works:
-
-```python
-# Step 1: Load and split documents
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-loader = PyPDFLoader("document.pdf")
-documents = loader.load()
-splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
-split_docs = splitter.split_documents(documents)
-
-# Step 2: Create embeddings
-from langchain_openai import OpenAIEmbeddings
-embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
-
-# Step 3: Store in vector database
-from langchain_chroma import Chroma
-vectorstore = Chroma.from_documents(
-    documents=split_docs,
-    embedding=embedding_function,
-    persist_directory="./chroma_db"
-)
-
-# Step 4: Create retriever
-retriever = vectorstore.as_retriever(
-    search_type="similarity",
-    search_kwargs={"k": 3}
-)
-
-# Step 5: Query
-results = retriever.get_relevant_documents("your query")
-```
-
-### Key Components:
-
-1. **Embeddings**: Convert text to vectors
-   - `OpenAIEmbeddings`: Uses OpenAI's embedding models
-   - `HuggingFaceEmbeddings`: Uses Hugging Face sentence transformers
-   - Embeddings capture semantic meaning
-
-2. **Vector Database (Chroma)**: Stores embeddings
-   - Lightweight and easy to use
-   - Persists to disk for future use
-   - Enables fast similarity search
-
-### The Flow:
-
-```
-Document Chunks
-  ↓
-Embedding Function
-  ↓
-Vector Embeddings
-  ↓
-Chroma Vector Database
-```
-
-> **Note:** Retrievers and retrieval chains are covered in **module 011 (LCEL Retrieval Chain)**.
-
-## Code Examples
-
-### Document Storage Example (`document_storage_example.py`)
-
-This example demonstrates:
-- Loading documents from PDF files
-- Splitting documents into chunks
-- Creating embeddings (OpenAI or Hugging Face)
-- Storing documents in Chroma vector database
-
-**Key Features:**
-- Complete workflow from loading to storage
-- Supports both OpenAI and Hugging Face embeddings
-- Shows vector database persistence
-- Prepares documents for retrieval (covered in module 011)
-
-## Key Concepts Explained
-
-### Embeddings
-
-![Document Embedding](../utils/media/rag_document_embedding.png)
-
-**Embeddings** are numerical representations of text. Embedding models aim to capture the "meaning" of the text, and these numbers map the text's position in a high-dimensional, or vector space.
-
-- **When documents are embedded and stored**, similar documents are located closer together in the vector space
-- **When a RAG application receives a user input**, it will be embedded and used to query the database
-
-Embeddings convert text into numerical vectors that capture semantic meaning:
-```python
-from langchain_openai import OpenAIEmbeddings
-
-embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
-# Converts "machine learning" → [0.123, -0.456, 0.789, ...]
-```
-
-Similar texts have similar vectors, enabling semantic search.
-
-### Vector Database (Chroma)
-
-**Vector stores** are databases specifically designed to store and retrieve high-dimensional vector data.
-
-- **One example is using a vector database** to store our documents and make them available for retrieval
-- **This requires embedding our text documents** to create vectors that capture the semantic meaning of the text
-- **Then, a user query can be embedded** to retrieve the most similar documents from the database and insert them into the model prompt
-
-**There are many Vector Databases in LangChain. When making a decision:**
-- Consider whether an **open source solution is required**, which may be the case if high customizability is required
-- Also, consider whether **the data can be stored on off-premises on third-party servers** - not all cases will permit this
-- The **amount of storage and latency of retrieving results** is also a key consideration
-- Sometimes a **lightweight in-memory database will be sufficient**, but others will require something more powerful
-
-![Vector Database Landscape](../utils/media/rag_vector_db.png)
-
-Chroma is a lightweight vector database:
-```python
-from langchain_chroma import Chroma
-
-vectorstore = Chroma.from_documents(
-    documents=split_docs,
-    embedding=embedding_function,
-    persist_directory="./chroma_db"
-)
-```
-
-- Stores embeddings alongside document content
-- Enables fast similarity search
-- Persists to disk for future use
-
-
 ## Quiz
 
 Test your understanding of document storage! Run:
@@ -334,15 +348,3 @@ If you encounter issues:
 3. Try running the example directly: `python document_storage_example.py`
 4. Check the error messages for specific guidance
 5. Delete the `chroma_db` directory and try again if database errors occur
-
-## Summary
-
-Document storage with vector databases enables you to:
-- ✅ Convert documents to embeddings
-- ✅ Store embeddings in a vector database
-- ✅ Prepare documents for semantic search and retrieval
-- ✅ Scale to large document collections
-- ✅ Persist embeddings for future use
-
-This is an essential step for building effective RAG applications! The next module (011) will show you how to create retrievers and build retrieval chains.
-

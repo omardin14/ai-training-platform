@@ -2,6 +2,7 @@
 
 This module introduces **Prompt Templates** - LangChain components that act as reusable recipes for defining prompts for LLMs.
 
+<!-- lesson:page What are Prompt Templates? -->
 ## What are Prompt Templates?
 
 Prompt templates are structured ways to create prompts for language models. Instead of writing prompts as plain strings every time, prompt templates allow you to:
@@ -26,6 +27,7 @@ Prompt templates can include different types of content:
 - **Examples** - Sample inputs/outputs for the model to draw on (few-shot learning)
 - **Additional context** - Any extra information that might help the model complete the task
 
+<!-- lesson:page Message Roles and Template Structure -->
 ### Message Roles
 
 In `ChatPromptTemplate`, messages have different roles:
@@ -37,6 +39,75 @@ In `ChatPromptTemplate`, messages have different roles:
 | **`ai`** | Represents the assistant's previous responses (for conversations) | `"I'd be happy to help!"` |
 
 > **Note**: In our simple example, we use `system` for instructions and `human` for the user's question. The `ai` role is used when building conversational chains with multiple turns.
+
+## Understanding Prompt Template Structure
+
+Let's break down the components of a prompt template using our example:
+
+```python
+prompt_template = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    ("human", "Explain {topic} in one sentence.")
+])
+```
+
+### 1. **ChatPromptTemplate.from_messages()**
+   - This method creates a template from a list of messages
+   - Each message defines a role and content
+
+### 2. **System Message** - `("system", "You are a helpful assistant.")`
+   - **Role**: `"system"` - Instructions for the model's behavior
+   - **Content**: `"You are a helpful assistant."` - Sets the context/instructions
+   - **Purpose**: Tells the model how to behave, what role to play, or what guidelines to follow
+   - This is an **INSTRUCTION** component
+
+### 3. **Human Message** - `("human", "Explain {topic} in one sentence.")`
+   - **Role**: `"human"` - Represents the user's input
+   - **Content**: `"Explain {topic} in one sentence."` - The actual question/request
+   - **Purpose**: Contains the user's query or request
+   - This is a **QUESTION** component
+
+### 4. **Variable Placeholder** - `{topic}`
+   - **Syntax**: `{variable_name}` - Curly braces define a variable
+   - **Purpose**: A placeholder that will be filled in with an actual value later
+   - **Example**: When formatted with `topic="quantum computing"`, becomes:
+     `"Explain quantum computing in one sentence."`
+
+### 5. **Formatting the Template**
+   ```python
+   formatted_messages = prompt_template.format_messages(topic="quantum computing")
+   ```
+   - Replaces `{topic}` with the actual value
+   - Returns formatted messages ready to send to the model
+
+<!-- lesson:page Complete Flow and Code Examples -->
+### Complete Flow:
+1. **Create Template** → Define structure with variables
+2. **Format Template** → Fill in variables with actual values
+3. **Invoke Model** → Send formatted prompt to the model
+4. **Get Response** → Receive the model's output
+
+## Code Examples
+
+### Prompt Template Example (`prompt_template_example.py`)
+
+The example demonstrates:
+- **Creating a prompt template** with system instructions and a human question
+- **Using variables** (`{topic}`) as placeholders
+- **Formatting the template** by filling in the variable with an actual value
+- **Using the formatted prompt** with a model (OpenAI or Hugging Face)
+
+<!-- lesson:page Key Benefits -->
+## Key Benefits
+
+| Feature | Without Templates | With Templates |
+|---------|-------------------|----------------|
+| **Reusability** | Rewrite prompts each time | Define once, reuse many times |
+| **Maintainability** | Update prompts in multiple places | Update in one place |
+| **Consistency** | Easy to have inconsistencies | Ensures consistent structure |
+| **Flexibility** | Hard to parameterize | Easy to fill in variables |
+
+<!-- lesson:end -->
 
 ## Prerequisites
 
@@ -141,62 +212,6 @@ source venv/bin/activate  # On macOS/Linux
 python prompt_template_example.py
 ```
 
-## Understanding Prompt Template Structure
-
-Let's break down the components of a prompt template using our example:
-
-```python
-prompt_template = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant."),
-    ("human", "Explain {topic} in one sentence.")
-])
-```
-
-### 1. **ChatPromptTemplate.from_messages()**
-   - This method creates a template from a list of messages
-   - Each message defines a role and content
-
-### 2. **System Message** - `("system", "You are a helpful assistant.")`
-   - **Role**: `"system"` - Instructions for the model's behavior
-   - **Content**: `"You are a helpful assistant."` - Sets the context/instructions
-   - **Purpose**: Tells the model how to behave, what role to play, or what guidelines to follow
-   - This is an **INSTRUCTION** component
-
-### 3. **Human Message** - `("human", "Explain {topic} in one sentence.")`
-   - **Role**: `"human"` - Represents the user's input
-   - **Content**: `"Explain {topic} in one sentence."` - The actual question/request
-   - **Purpose**: Contains the user's query or request
-   - This is a **QUESTION** component
-
-### 4. **Variable Placeholder** - `{topic}`
-   - **Syntax**: `{variable_name}` - Curly braces define a variable
-   - **Purpose**: A placeholder that will be filled in with an actual value later
-   - **Example**: When formatted with `topic="quantum computing"`, becomes:
-     `"Explain quantum computing in one sentence."`
-
-### 5. **Formatting the Template**
-   ```python
-   formatted_messages = prompt_template.format_messages(topic="quantum computing")
-   ```
-   - Replaces `{topic}` with the actual value
-   - Returns formatted messages ready to send to the model
-
-### Complete Flow:
-1. **Create Template** → Define structure with variables
-2. **Format Template** → Fill in variables with actual values
-3. **Invoke Model** → Send formatted prompt to the model
-4. **Get Response** → Receive the model's output
-
-## Code Examples
-
-### Prompt Template Example (`prompt_template_example.py`)
-
-The example demonstrates:
-- **Creating a prompt template** with system instructions and a human question
-- **Using variables** (`{topic}`) as placeholders
-- **Formatting the template** by filling in the variable with an actual value
-- **Using the formatted prompt** with a model (OpenAI or Hugging Face)
-
 ## Test Your Knowledge
 
 After running the examples, test your understanding with the interactive quiz:
@@ -271,18 +286,8 @@ By completing the challenge, you'll reinforce:
 - How to format templates with actual values
 - How to use formatted templates with models
 
-## Key Benefits
-
-| Feature | Without Templates | With Templates |
-|---------|-------------------|----------------|
-| **Reusability** | Rewrite prompts each time | Define once, reuse many times |
-| **Maintainability** | Update prompts in multiple places | Update in one place |
-| **Consistency** | Easy to have inconsistencies | Ensures consistent structure |
-| **Flexibility** | Hard to parameterize | Easy to fill in variables |
-
 ## Next Steps
 
 After understanding prompt templates, proceed to:
 - **03-prompt-chains**: Discover how to chain multiple prompts together
 - **04-few-shot-prompts**: Learn about providing examples to improve model responses
-
