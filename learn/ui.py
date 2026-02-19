@@ -1,6 +1,7 @@
 """Rich + InquirerPy rendering helpers for the interactive learning tool."""
 
 import os
+import random
 import re
 import subprocess
 import sys
@@ -17,7 +18,10 @@ console = Console()
 
 
 def clear():
-    console.clear()
+    # Print blank lines to push old content into scrollback consistently.
+    # Using \033[2J (console.clear) is unreliable — some terminals preserve
+    # scrollback, others don't, leading to inconsistent behavior.
+    console.print("\n" * console.height)
 
 
 def render_page(page, current, total, module_title):
@@ -70,9 +74,13 @@ def run_quiz(questions, module_title):
         )
         console.print()
 
+        # Shuffle choices so the correct answer isn't always in the same position
+        indexed_choices = list(enumerate(q["choices"]))
+        random.shuffle(indexed_choices)
+
         choices = [
-            Choice(value=idx, name=choice)
-            for idx, choice in enumerate(q["choices"])
+            Choice(value=orig_idx, name=text)
+            for orig_idx, text in indexed_choices
         ]
 
         answer = inquirer.select(
@@ -121,19 +129,25 @@ def _get_project_root():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _check_placeholders(challenge_path):
-    """Check if challenge file still has XXXX___ placeholders.
+def _strip_comments(code):
+    """Remove docstrings, full-line comments, and inline comments from code."""
+    # Strip triple-quoted docstrings
+    code = re.sub(r'""".*?"""', "", code, flags=re.DOTALL)
+    code = re.sub(r"'''.*?'''", "", code, flags=re.DOTALL)
+    # Strip comments (full-line and inline)
+    code = re.sub(r"#.*", "", code)
+    return code
 
-    Returns True if placeholders remain.
+
+def _check_placeholders(challenge_path):
+    """Check if challenge file still has XXXX___ placeholders in code.
+
+    Returns True if placeholders remain. Ignores placeholders in
+    comments and docstrings (hint text).
     """
     with open(challenge_path, encoding="utf-8") as f:
         code = f.read()
-    # Strip docstrings and comments (same logic as Makefile)
-    code = re.sub(r'""".*?"""', "", code, flags=re.DOTALL)
-    code = "\n".join(
-        line for line in code.split("\n") if not line.strip().startswith("#")
-    )
-    return "XXXX___" in code
+    return "XXXX___" in _strip_comments(code)
 
 
 def _validate_challenge(challenge, module_dir):
@@ -151,9 +165,10 @@ def _validate_challenge(challenge, module_dir):
     console.print()
 
     if _check_placeholders(challenge_path):
-        # Count remaining placeholders
+        # Count remaining placeholders (in code only, not comments/docstrings)
         with open(challenge_path, encoding="utf-8") as f:
-            count = f.read().count("XXXX___")
+            code = _strip_comments(f.read())
+        count = code.count("XXXX___")
 
         console.print(
             Panel(
