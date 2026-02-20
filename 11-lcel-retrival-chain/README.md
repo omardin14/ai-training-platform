@@ -110,15 +110,24 @@ This allows `component3` to receive both `input1` and `input2`.
 
 Let's break down how a retrieval chain works:
 
+### Step 1: Create the Prompt Template
+
+Define a template with placeholders for both the retrieved `{context}` and the user's `{question}`:
+
 ```python
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 
-# Create prompt template
 message = """Answer using context: {context}\nQuestion: {question}\nAnswer:"""
 prompt_template = ChatPromptTemplate.from_messages([("human", message)])
+```
 
-# Build retrieval chain
+### Step 2: Build the Retrieval Chain
+
+Use dictionary syntax to wire up two inputs: the retriever fetches relevant documents for `"context"`, while `RunnablePassthrough()` passes the question through unchanged:
+
+```python
+from langchain_core.runnables import RunnablePassthrough
+
 retrieval_chain = (
     {
         "context": retriever,  # Retrieve documents
@@ -127,8 +136,13 @@ retrieval_chain = (
     | prompt_template  # Format prompt
     | llm  # Generate answer
 )
+```
 
-# Use the chain
+### Step 3: Invoke the Chain
+
+Pass a question string to the chain. It retrieves relevant documents, formats the prompt, and generates an answer:
+
+```python
 response = retrieval_chain.invoke("What is machine learning?")
 ```
 

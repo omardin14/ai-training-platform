@@ -61,18 +61,31 @@ RAG Application / Vector Store / Retrieval
 
 Let's break down how document splitters work:
 
-```python
-# Step 1: Import the splitter
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+### Step 1: Import the Splitter
 
-# Step 2: Create a splitter instance
+Choose a splitter class based on your needs:
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+```
+
+### Step 2: Create a Splitter Instance
+
+Configure the splitter with chunk size, overlap, and separators:
+
+```python
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=300,
     chunk_overlap=100,
     separators=["\n", " ", ""]
 )
+```
 
-# Step 3: Split text or documents
+### Step 3: Split Text or Documents
+
+Use `split_text()` for plain strings, or `split_documents()` for Document objects (which preserves metadata):
+
+```python
 chunks = splitter.split_text(text)  # For strings
 # or
 split_docs = splitter.split_documents(documents)  # For Document objects

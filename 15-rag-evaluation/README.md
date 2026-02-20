@@ -71,8 +71,11 @@ We can use LLMs to measure the correctness of the final output by comparing it t
 
 ### Example
 
+#### Step 1: Create the Evaluation Prompt
+
+Define a prompt template that instructs the model to compare a predicted answer against a reference answer:
+
 ```python
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 
 prompt_template = """You are an evaluator comparing two answers to determine if they match.
@@ -94,10 +97,24 @@ prompt = PromptTemplate(
     input_variables=["query", "answer", "result"],
     template=prompt_template
 )
+```
+
+#### Step 2: Create the Evaluation Chain
+
+Use an LLM with `temperature=0` for consistent, deterministic evaluation results:
+
+```python
+from langchain_openai import ChatOpenAI
 
 eval_llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
 eval_chain = prompt | eval_llm
+```
 
+#### Step 3: Run the Evaluation
+
+Invoke the chain with a query, the expected answer, and the predicted result:
+
+```python
 result = eval_chain.invoke({
     "query": "What are the two primary stages in document processing systems?",
     "answer": "Retrieval and generation",
@@ -146,20 +163,37 @@ Faithfulness helps identify:
 
 ### Example
 
+#### Step 1: Create the LLM and Embeddings
+
+Set up the language model and embeddings that RAGAS will use for evaluation:
+
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from ragas.integrations.langchain import EvaluatorChain
-from ragas.metrics import faithfulness
 
 llm = ChatOpenAI(model="gpt-4o-mini")
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key="...")
+```
+
+#### Step 2: Create the Faithfulness Evaluator
+
+Create an `EvaluatorChain` configured with the faithfulness metric:
+
+```python
+from ragas.integrations.langchain import EvaluatorChain
+from ragas.metrics import faithfulness
 
 faithfulness_chain = EvaluatorChain(
     metric=faithfulness,
     llm=llm,
     embeddings=embeddings
 )
+```
 
+#### Step 3: Run the Evaluation
+
+Pass the question, generated answer, and retrieved contexts. RAGAS checks if each claim in the answer can be derived from the contexts:
+
+```python
 eval_result = faithfulness_chain({
     "question": "How do information systems combine document search with text generation?",
     "answer": "Information systems combine document search with text generation by first finding relevant documents from a knowledge base, then using those documents to generate accurate responses.",

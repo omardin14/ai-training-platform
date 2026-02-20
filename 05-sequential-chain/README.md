@@ -43,20 +43,33 @@ The output of the first chain becomes the input variable for the second chain.
 
 Let's break down how a sequential chain works:
 
+### Step 1: Create the First Prompt Template
+
+The first prompt takes the initial input and asks the LLM for a detailed response:
+
 ```python
-# Step 1: Create the first prompt template
 explanation_prompt = PromptTemplate(
     input_variables=["topic"],
     template="Explain {topic} in detail, covering its key concepts and how it works."
 )
+```
 
-# Step 2: Create the second prompt template
+### Step 2: Create the Second Prompt Template
+
+The second prompt takes the output of the first chain as its input variable (`detailed_explanation`):
+
+```python
 summary_prompt = PromptTemplate(
     input_variables=["detailed_explanation"],
     template="Based on this explanation: {detailed_explanation}\n\nCreate a simple, beginner-friendly summary in 2-3 sentences."
 )
+```
 
-# Step 3: Create the sequential chain
+### Step 3: Create the Sequential Chain
+
+Connect both prompts using dictionary syntax. The first chain's output is passed as `"detailed_explanation"` to the second chain:
+
+```python
 seq_chain = (
     {"detailed_explanation": explanation_prompt | llm | StrOutputParser()}
     | summary_prompt

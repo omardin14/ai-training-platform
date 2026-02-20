@@ -59,21 +59,35 @@ When using token-based splitting:
 
 The `TokenTextSplitter` can be used to perform token splitting:
 
+#### Step 1: Get the Token Encoding
+
+Use `tiktoken` to get the encoding for your target model. This ensures token counts match what the model expects:
+
 ```python
 import tiktoken
+
+encoding = tiktoken.encoding_for_model('gpt-4o-mini')
+```
+
+#### Step 2: Create the Token Splitter
+
+Configure the splitter with token-based `chunk_size` and `chunk_overlap` (these are now token counts, not character counts):
+
+```python
 from langchain_text_splitters import TokenTextSplitter
 
-# Get the encoding for the target model
-encoding = tiktoken.encoding_for_model('gpt-4o-mini')
-
-# Create a token text splitter
 token_splitter = TokenTextSplitter(
     encoding_name=encoding.name,
     chunk_size=100,  # 100 tokens
     chunk_overlap=10  # 10 tokens overlap
 )
+```
 
-# Split the document
+#### Step 3: Split the Document
+
+Split your documents into token-sized chunks:
+
+```python
 chunks = token_splitter.split_documents([document])
 ```
 
@@ -106,23 +120,37 @@ Semantic splitting requires:
 
 The `SemanticChunker` performs semantic splitting:
 
+#### Step 1: Create an Embedding Model
+
+The semantic splitter needs an embedding model to generate vectors and detect meaning shifts:
+
 ```python
 from langchain_openai import OpenAIEmbeddings
-from langchain_experimental.text_splitter import SemanticChunker
 
-# Instantiate an OpenAI embeddings model
 embedding_model = OpenAIEmbeddings(
     model='text-embedding-3-small'
 )
+```
 
-# Create the semantic text splitter
+#### Step 2: Create the Semantic Splitter
+
+Configure the `SemanticChunker` with the embedding model and breakpoint threshold settings:
+
+```python
+from langchain_experimental.text_splitter import SemanticChunker
+
 semantic_splitter = SemanticChunker(
     embeddings=embedding_model,
     breakpoint_threshold_type="gradient",
     breakpoint_threshold_amount=0.8
 )
+```
 
-# Split the document
+#### Step 3: Split the Document
+
+The splitter analyzes semantic meaning and splits at natural topic boundaries:
+
+```python
 chunks = semantic_splitter.split_documents([document])
 ```
 

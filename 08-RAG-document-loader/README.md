@@ -73,17 +73,35 @@ RAG Application / Search / Generation
 
 Let's break down how document loaders work:
 
+### Step 1: Import the Loader
+
+Choose the right loader class for your file type:
+
 ```python
-# Step 1: Import the loader for your file type
 from langchain_community.document_loaders import PyPDFLoader
+```
 
-# Step 2: Create a loader instance
+### Step 2: Create a Loader Instance
+
+Point the loader at your file path:
+
+```python
 loader = PyPDFLoader("path/to/file.pdf")
+```
 
-# Step 3: Load the document
+### Step 3: Load the Document
+
+Call `load()` to extract the content. This returns a list of Document objects:
+
+```python
 documents = loader.load()
+```
 
-# Step 4: Access content and metadata
+### Step 4: Access Content and Metadata
+
+Each Document has `page_content` (the text) and `metadata` (file information like source path and page number):
+
+```python
 first_doc = documents[0]
 print(first_doc.page_content)  # The text content
 print(first_doc.metadata)       # File information
