@@ -111,17 +111,33 @@ When asking "When was football created?" in a paragraph with multiple facts abou
 <!-- lesson:page BM25Retriever in LangChain -->
 ### BM25Retriever in LangChain
 
+#### Step 1: Define Your Text Chunks
+
+Create a list of text chunks to search over:
+
 ```python
 from langchain_community.retrievers import BM25Retriever
 
-# Create BM25 retriever from texts
 chunks = [
     "LangChain was created to simplify building applications with language models.",
     "LangChain provides tools for document loading, splitting, and retrieval.",
     "Vector databases enable semantic search by storing document embeddings."
 ]
+```
 
+#### Step 2: Create the BM25 Retriever
+
+Build a retriever from the text chunks. The `k` parameter controls how many results to return:
+
+```python
 bm25_retriever = BM25Retriever.from_texts(chunks, k=3)
+```
+
+#### Step 3: Query the Retriever
+
+Invoke the retriever with a query. BM25 matches based on term frequency and uniqueness:
+
+```python
 results = bm25_retriever.invoke("What is LangChain used for?")
 
 print("Most Relevant Document:")
@@ -133,34 +149,49 @@ print(results[0].page_content)
 
 BM25 can be used in RAG chains just like dense retrievers:
 
+#### Step 1: Create the BM25 Retriever
+
 ```python
 from langchain_community.retrievers import BM25Retriever
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
-from langchain_openai import ChatOpenAI
 
-# Create retriever
 retriever = BM25Retriever.from_documents(
     documents=chunks,
     k=5
 )
+```
 
-# Create prompt
+#### Step 2: Create the Prompt Template
+
+Define a prompt that takes both retrieved context and the user's question:
+
+```python
+from langchain_core.prompts import ChatPromptTemplate
+
 prompt = ChatPromptTemplate.from_messages([
     ("system", "Answer the question using the provided context."),
     ("human", "Context: {context}\n\nQuestion: {question}\n\nAnswer:")
 ])
+```
 
-# Create chain
+#### Step 3: Build the Chain
+
+Wire up the retriever, prompt, LLM, and output parser using LCEL:
+
+```python
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
 chain = (
     {"context": retriever, "question": RunnablePassthrough()}
     | prompt
     | llm
     | StrOutputParser()
 )
+```
 
-# Invoke
+#### Step 4: Invoke the Chain
+
+```python
 answer = chain.invoke("How can LLM hallucination impact a RAG application?")
 ```
 

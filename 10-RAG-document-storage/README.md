@@ -93,8 +93,11 @@ vectorstore = Chroma.from_documents(
 
 Let's break down how document storage works:
 
+### Step 1: Load and Split Documents
+
+Load source documents and split them into chunks that can be efficiently embedded and retrieved:
+
 ```python
-# Step 1: Load and split documents
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -102,26 +105,48 @@ loader = PyPDFLoader("document.pdf")
 documents = loader.load()
 splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
 split_docs = splitter.split_documents(documents)
+```
 
-# Step 2: Create embeddings
+### Step 2: Create Embeddings
+
+Create an embedding function that converts text into numerical vectors capturing semantic meaning:
+
+```python
 from langchain_openai import OpenAIEmbeddings
-embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# Step 3: Store in vector database
+embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
+```
+
+### Step 3: Store in Vector Database
+
+Pass the split documents and embedding function to Chroma. It embeds each chunk and stores the vectors alongside the original content:
+
+```python
 from langchain_chroma import Chroma
+
 vectorstore = Chroma.from_documents(
     documents=split_docs,
     embedding=embedding_function,
     persist_directory="./chroma_db"
 )
+```
 
-# Step 4: Create retriever
+### Step 4: Create a Retriever
+
+Convert the vector store into a retriever that can search for the most similar documents to a query:
+
+```python
 retriever = vectorstore.as_retriever(
     search_type="similarity",
     search_kwargs={"k": 3}
 )
+```
 
-# Step 5: Query
+### Step 5: Query
+
+Use the retriever to find the most relevant documents for a given query:
+
+```python
 results = retriever.get_relevant_documents("your query")
 ```
 

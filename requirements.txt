@@ -26,6 +26,7 @@ pypdf>=3.0.0
 unstructured>=0.10.0
 unstructured[markdown]>=0.10.0
 markdown>=3.4.0
+wikipedia>=1.4.0
 
 # --- Vector Stores ---
 langchain-chroma>=0.1.0

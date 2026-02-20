@@ -43,18 +43,31 @@ The model learns from the examples and applies the same pattern to your question
 
 Let's break down how a few-shot prompt works:
 
+### Step 1: Define Examples
+
+Create a list of input/output pairs that show the model the desired behavior:
+
 ```python
-# Step 1: Define examples
 examples = [
     {"input": "happy", "output": "joyful"},
     {"input": "sad", "output": "melancholy"},
     {"input": "angry", "output": "furious"}
 ]
+```
 
-# Step 2: Create a template for formatting each example
+### Step 2: Create an Example Template
+
+Define how each example should be formatted when presented to the model:
+
+```python
 example_prompt = PromptTemplate.from_template("Word: {input}\nSynonym: {output}")
+```
 
-# Step 3: Create the few-shot prompt template
+### Step 3: Create the Few-Shot Prompt Template
+
+Combine the examples and template into a `FewShotPromptTemplate`. The `suffix` defines the format for the actual input question:
+
+```python
 prompt_template = FewShotPromptTemplate(
     examples=examples,
     example_prompt=example_prompt,

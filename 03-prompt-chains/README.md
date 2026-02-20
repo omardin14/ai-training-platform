@@ -52,15 +52,28 @@ Output: Response from the model
 
 Let's break down how a prompt chain works using our example:
 
+### Step 1: Create a Prompt Template
+
+Define a reusable template with variable placeholders using `{variable_name}` syntax:
+
 ```python
-# Step 1: Create a prompt template
 template = "You are a helpful AI assistant. Answer the question: {question}"
 prompt = PromptTemplate.from_template(template=template)
+```
 
-# Step 2: Create a chain using the pipe operator
+### Step 2: Create a Chain Using the Pipe Operator
+
+Connect the prompt template with the model using the pipe operator (`|`):
+
+```python
 llm_chain = prompt | llm
+```
 
-# Step 3: Invoke the chain with input variables
+### Step 3: Invoke the Chain
+
+Pass a dictionary with variable values to run the chain. It automatically formats the template, sends it to the LLM, and returns the response:
+
+```python
 response = llm_chain.invoke({"question": "How does LangChain make LLM application development easier?"})
 ```
 
