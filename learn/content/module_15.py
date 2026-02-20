@@ -54,10 +54,10 @@ MODULE = {
         "topic": "RAG evaluation",
         "hints": [
             "Look at rag_evaluation_example.py for reference",
-            "The first XXXX___ should be an import (PromptTemplate)",
-            "The second XXXX___ should be a class name (PromptTemplate)",
-            "The third XXXX___ should be an import (EvaluatorChain)",
-            "The fourth XXXX___ should be an import (faithfulness)",
+            "The first two XXXX___ are for PromptTemplate (import and usage)",
+            "Use ragas.evaluate(), EvaluationDataset, and SingleTurnSample",
+            "Wrap the LangChain LLM with LangchainLLMWrapper for RAGAS",
+            "The Faithfulness metric class is in ragas.metrics._faithfulness",
         ],
     },
 }

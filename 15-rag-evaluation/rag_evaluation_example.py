@@ -132,15 +132,24 @@ Grade:"""
     
     try:
         from langchain_openai import OpenAIEmbeddings
-        from ragas.integrations.langchain import EvaluatorChain
-        from ragas.metrics import faithfulness, context_precision
-        
+        from ragas import evaluate, EvaluationDataset, SingleTurnSample
+        from ragas.metrics._faithfulness import Faithfulness
+        from ragas.metrics._context_precision import ContextPrecision
+        from ragas.llms import LangchainLLMWrapper
+        from ragas.embeddings import LangchainEmbeddingsWrapper
+
         # Create LLM and embeddings for RAGAS
-        llm = ChatOpenAI(model="gpt-4o-mini")
-        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-        
+        ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o-mini"))
+        ragas_embeddings = LangchainEmbeddingsWrapper(
+            OpenAIEmbeddings(model="text-embedding-3-small")
+        )
+
+        # Configure metrics with LLM and embeddings
+        faithfulness_metric = Faithfulness(llm=ragas_llm)
+        context_precision_metric = ContextPrecision(llm=ragas_llm)
+
         print("✓ RAGAS components initialized")
-        
+
         # ========================================================================
         # FAITHFULNESS METRIC
         # ========================================================================
@@ -157,15 +166,7 @@ Grade:"""
         print("\n" + "-"*70)
         print("✨ Faithfulness Metric:")
         print("-"*70)
-        
-        faithfulness_chain = EvaluatorChain(
-            metric=faithfulness,
-            llm=llm,
-            embeddings=embeddings
-        )
-        
-        print("✓ Faithfulness evaluator chain created")
-        
+
         # Example evaluation
         question = "How do information systems combine document search with text generation?"
         answer = "Information systems combine document search with text generation by first finding relevant documents from a knowledge base, then using those documents to generate accurate, context-aware responses."
@@ -173,22 +174,28 @@ Grade:"""
             "Information systems integrate document search with text generation by first retrieving relevant passages from a knowledge base, then using those passages to inform the text generation process.",
             "By incorporating search mechanisms, information systems leverage external knowledge sources, allowing the system to access current information beyond its initial training data."
         ]
-        
+
         print(f"\n  Question: {question}")
         print(f"  Answer: {answer}")
         print(f"  Contexts: {len(contexts)} retrieved documents")
-        
-        eval_result = faithfulness_chain({
-            "question": question,
-            "answer": answer,
-            "contexts": contexts
-        })
-        
-        faithfulness_score = eval_result.get('faithfulness', 0.0)
+
+        faithfulness_sample = SingleTurnSample(
+            user_input=question,
+            response=answer,
+            retrieved_contexts=contexts,
+        )
+        faithfulness_dataset = EvaluationDataset(samples=[faithfulness_sample])
+
+        faithfulness_result = evaluate(
+            dataset=faithfulness_dataset,
+            metrics=[faithfulness_metric],
+        )
+
+        faithfulness_score = faithfulness_result.scores[0].get("faithfulness", 0.0)
         print(f"\n  Faithfulness Score: {faithfulness_score}")
         print(f"  (1.0 = perfect faithfulness, all claims derivable from context)")
         print(f"  (0.0 = no faithfulness, claims not supported by context)")
-        
+
         # ========================================================================
         # CONTEXT PRECISION METRIC
         # ========================================================================
@@ -200,15 +207,7 @@ Grade:"""
         print("\n" + "-"*70)
         print("🎯 Context Precision Metric:")
         print("-"*70)
-        
-        context_precision_chain = EvaluatorChain(
-            metric=context_precision,
-            llm=llm,
-            embeddings=embeddings
-        )
-        
-        print("✓ Context precision evaluator chain created")
-        
+
         # Example evaluation
         question = "How do information systems combine document search with text generation?"
         ground_truth = "Information systems combine document search with text generation by retrieving relevant documents and using them to generate accurate responses."
@@ -217,34 +216,45 @@ Grade:"""
             "By incorporating search mechanisms, information systems leverage external knowledge sources, allowing access to current information.",
             "Database systems store and organize information for efficient retrieval."
         ]
-        
+
         print(f"\n  Question: {question}")
         print(f"  Ground Truth: {ground_truth}")
         print(f"  Contexts: {len(contexts)} retrieved documents")
-        
-        eval_result = context_precision_chain({
-            "question": question,
-            "ground_truth": ground_truth,
-            "contexts": contexts
-        })
-        
-        context_precision_score = eval_result.get('context_precision', 0.0)
+
+        precision_sample = SingleTurnSample(
+            user_input=question,
+            response=ground_truth,
+            retrieved_contexts=contexts,
+            reference=ground_truth,
+        )
+        precision_dataset = EvaluationDataset(samples=[precision_sample])
+
+        precision_result = evaluate(
+            dataset=precision_dataset,
+            metrics=[context_precision_metric],
+        )
+
+        context_precision_score = precision_result.scores[0].get("context_precision", 0.0)
         print(f"\n  Context Precision Score: {context_precision_score}")
         print(f"  (1.0 = highly relevant contexts)")
         print(f"  (0.0 = irrelevant contexts)")
-        
+
     except ImportError as e:
-        print("⚠️  RAGAS not installed. RAGAS is required for faithfulness and context precision metrics.")
-        print("\n   To install RAGAS, run:")
-        print("   make install")
-        print("   or")
-        print("   pip install ragas")
-        print("\n   Note: RAGAS provides advanced evaluation metrics for RAG applications.")
-        print(f"   Import error: {str(e)}")
+        module_name = str(e).replace("No module named ", "").strip("'")
+        print(f"⚠️  Missing dependency: {module_name}")
+        print("   RAGAS is required for faithfulness and context precision metrics.")
+        print("\n   To install, run:")
+        print("     pip install ragas langchain-openai")
+        print("\n   If already installed, you may have a version mismatch.")
+        print("   Try upgrading:")
+        print("     pip install --upgrade ragas langchain langchain-core")
     except Exception as e:
-        print(f"⚠️  Error with RAGAS evaluation: {e}")
-        print("   This may require additional dependencies or API access.")
-        print("   Make sure RAGAS is properly installed: pip install ragas")
+        print(f"⚠️  RAGAS evaluation error: {e}")
+        print("   This may be caused by:")
+        print("   - Invalid or expired OpenAI API key")
+        print("   - Network connectivity issues")
+        print("   - Version incompatibility between ragas and langchain")
+        print("\n   Try: pip install --upgrade ragas langchain langchain-core")
     
     # ============================================================================
     # SUMMARY
