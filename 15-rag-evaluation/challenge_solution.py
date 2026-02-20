@@ -13,7 +13,7 @@ load_dotenv()
 # Check for API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key or openai_api_key == "your-openai-api-key-here":
-    print("❌ Error: OPENAI_API_KEY not found. Please set it in .env file.")
+    print("Error: OPENAI_API_KEY not found. Please set it in .env file.")
     exit(1)
 
 from langchain_openai import ChatOpenAI
@@ -41,20 +41,18 @@ prompt = PromptTemplate(
     template=prompt_template
 )
 
-# Step 2: Create faithfulness evaluator
-from ragas.integrations.langchain import EvaluatorChain
-from ragas.metrics import faithfulness
+# Step 2: Create faithfulness evaluator using RAGAS v0.4 API
+from ragas import evaluate, EvaluationDataset, SingleTurnSample
+from ragas.metrics._faithfulness import Faithfulness
+from ragas.llms import LangchainLLMWrapper
 
 from langchain_openai import OpenAIEmbeddings
 
 llm = ChatOpenAI(model="gpt-4o-mini")
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-faithfulness_chain = EvaluatorChain(
-    metric=faithfulness,
-    llm=llm,
-    embeddings=embeddings
-)
+ragas_llm = LangchainLLMWrapper(llm)
+
+faithfulness_metric = Faithfulness(llm=ragas_llm)
 
 # Test evaluation
 query = "What are the main stages in document processing?"
@@ -70,12 +68,20 @@ result = eval_chain.invoke({
 
 print(f"Evaluation: {result.content.strip()}")
 
-# Test faithfulness
-eval_result = faithfulness_chain({
-    "question": "What are the main stages in document processing?",
-    "answer": "Document processing combines retrieval with generation.",
-    "contexts": ["Document processing systems combine document retrieval with text generation to provide accurate responses."]
-})
+# Test faithfulness using RAGAS evaluate() API
+sample = SingleTurnSample(
+    user_input="What are the main stages in document processing?",
+    response="Document processing combines retrieval with generation.",
+    retrieved_contexts=["Document processing systems combine document retrieval with text generation to provide accurate responses."]
+)
 
-print(f"Faithfulness Score: {eval_result.get('faithfulness', 0.0)}")
-print("\n✓ Challenge completed!")
+dataset = EvaluationDataset(samples=[sample])
+
+eval_result = evaluate(
+    dataset=dataset,
+    metrics=[faithfulness_metric],
+)
+
+faithfulness_score = eval_result.scores[0].get("faithfulness", 0.0)
+print(f"Faithfulness Score: {faithfulness_score}")
+print("\nChallenge completed!")

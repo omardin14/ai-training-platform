@@ -44,3 +44,4 @@ langsmith>=0.1.0
 # --- Interactive Learning ---
 rich>=13.0.0
 InquirerPy>=0.3.4
+rich-pixels>=3.0.0

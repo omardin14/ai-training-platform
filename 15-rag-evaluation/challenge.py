@@ -6,7 +6,7 @@ Replace the XXXX___ placeholders with the correct code.
 
 This challenge tests your understanding of:
 - Output evaluation using LLMs
-- RAGAS faithfulness metric
+- RAGAS faithfulness metric using the evaluate() API
 """
 
 import os
@@ -18,7 +18,7 @@ load_dotenv()
 # Check for API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key or openai_api_key == "your-openai-api-key-here":
-    print("❌ Error: OPENAI_API_KEY not found. Please set it in .env file.")
+    print("Error: OPENAI_API_KEY not found. Please set it in .env file.")
     exit(1)
 
 from langchain_openai import ChatOpenAI
@@ -48,25 +48,21 @@ prompt = XXXX___(
     template=prompt_template
 )
 
-# Step 2: Create faithfulness evaluator
-# Replace XXXX___ with the correct import (EvaluatorChain)
-from ragas.integrations.langchain import XXXX___
-
-# Replace XXXX___ with the correct import (faithfulness)
-from ragas.metrics import XXXX___
+# Step 2: Create faithfulness evaluator using RAGAS v0.4 API
+# Replace XXXX___ with the correct function name (evaluate)
+from ragas import XXXX___, EvaluationDataset, SingleTurnSample
+from ragas.metrics._faithfulness import Faithfulness
+from ragas.llms import LangchainLLMWrapper
 
 from langchain_openai import OpenAIEmbeddings
 
 llm = ChatOpenAI(model="gpt-4o-mini")
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# Replace XXXX___ with the correct class name (EvaluatorChain)
-# Replace XXXX___ with faithfulness
-faithfulness_chain = XXXX___(
-    metric=XXXX___,
-    llm=llm,
-    embeddings=embeddings
-)
+# Replace XXXX___ with the correct wrapper (LangchainLLMWrapper)
+ragas_llm = XXXX___(llm)
+
+# Replace XXXX___ with the correct metric class (Faithfulness)
+faithfulness_metric = XXXX___(llm=ragas_llm)
 
 # Test evaluation
 query = "What are the main stages in document processing?"
@@ -82,12 +78,23 @@ result = eval_chain.invoke({
 
 print(f"Evaluation: {result.content.strip()}")
 
-# Test faithfulness
-eval_result = faithfulness_chain({
-    "question": "What are the main stages in document processing?",
-    "answer": "Document processing combines retrieval with generation.",
-    "contexts": ["Document processing systems combine document retrieval with text generation to provide accurate responses."]
-})
+# Test faithfulness using RAGAS evaluate() API
+# Replace XXXX___ with the correct class (SingleTurnSample)
+sample = XXXX___(
+    user_input="What are the main stages in document processing?",
+    response="Document processing combines retrieval with generation.",
+    retrieved_contexts=["Document processing systems combine document retrieval with text generation to provide accurate responses."]
+)
 
-print(f"Faithfulness Score: {eval_result.get('faithfulness', 0.0)}")
-print("\n✓ Challenge completed!")
+# Replace XXXX___ with the correct class (EvaluationDataset)
+dataset = XXXX___(samples=[sample])
+
+# Replace XXXX___ with the correct function (evaluate)
+eval_result = XXXX___(
+    dataset=dataset,
+    metrics=[faithfulness_metric],
+)
+
+faithfulness_score = eval_result.scores[0].get("faithfulness", 0.0)
+print(f"Faithfulness Score: {faithfulness_score}")
+print("\nChallenge completed!")

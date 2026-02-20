@@ -5,7 +5,16 @@ import re
 
 PAGE_MARKER = re.compile(r"<!--\s*lesson:page\s+(.*?)\s*-->")
 END_MARKER = re.compile(r"<!--\s*lesson:end\s*-->")
-IMAGE_LINE = re.compile(r"!\[.*?\]\(.*?\)")
+IMAGE_LINE = re.compile(r"!\[(.*?)\]\((.*?)\)")
+
+# Sentinel used to mark image positions in content strings.
+# UI layer splits on this to interleave Markdown and image renderables.
+IMG_DELIM = "\x00"
+
+
+def _image_marker(alt, abs_path):
+    """Build an inline image marker the UI layer can detect."""
+    return f"{IMG_DELIM}IMG[{alt}]({abs_path}){IMG_DELIM}"
 
 
 def parse_readme(readme_path):
@@ -15,7 +24,8 @@ def parse_readme(readme_path):
         <!-- lesson:page Page Title --> — starts a new page
         <!-- lesson:end -->             — stops parsing (rest is ignored)
 
-    Image lines (![alt](path)) are stripped automatically.
+    Image lines (![alt](path)) are converted to inline markers with
+    resolved absolute paths.  The UI layer handles rendering or fallback.
 
     Returns:
         List of {"title": str, "content": str} dicts, one per page.
@@ -23,6 +33,8 @@ def parse_readme(readme_path):
     """
     if not os.path.isfile(readme_path):
         return []
+
+    readme_dir = os.path.dirname(os.path.abspath(readme_path))
 
     with open(readme_path, encoding="utf-8") as f:
         text = f.read()
@@ -46,10 +58,16 @@ def parse_readme(readme_path):
         title = parts[i].strip()
         content = parts[i + 1] if i + 1 < len(parts) else ""
 
-        # Strip image lines
-        content = IMAGE_LINE.sub("", content)
+        # Replace image lines with markers containing absolute paths
+        def _replace_image(match):
+            alt = match.group(1)
+            rel_path = match.group(2)
+            abs_path = os.path.normpath(os.path.join(readme_dir, rel_path))
+            return _image_marker(alt, abs_path)
 
-        # Clean up excessive blank lines left by image removal
+        content = IMAGE_LINE.sub(_replace_image, content)
+
+        # Clean up excessive blank lines
         content = re.sub(r"\n{3,}", "\n\n", content)
 
         content = content.strip()

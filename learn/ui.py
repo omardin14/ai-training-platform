@@ -1,20 +1,175 @@
 """Rich + InquirerPy rendering helpers for the interactive learning tool."""
 
+import base64
 import os
 import random
 import re
 import subprocess
 import sys
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.text import Text
 from rich import box
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
 
+from learn.parser import IMG_DELIM
+
+# Optional: rich-pixels for fallback terminal image rendering
+try:
+    from rich_pixels import Pixels
+    from PIL import Image
+
+    _HAS_PIXELS = True
+except ImportError:
+    _HAS_PIXELS = False
+
 console = Console()
+
+# Pattern to parse image markers produced by the parser.
+# Matches: \x00IMG[alt text](/absolute/path.png)\x00
+_IMG_MARKER = re.compile(
+    re.escape(IMG_DELIM) + r"IMG\[(.*?)\]\((.*?)\)" + re.escape(IMG_DELIM)
+)
+
+# Panel border (2) + padding 2 chars each side (2*2) = 6
+_PANEL_OVERHEAD = 6
+
+# Terminals that support the iTerm2 inline image protocol (full resolution).
+_NATIVE_IMAGE_TERMINALS = {"iTerm.app", "iTerm2", "WezTerm"}
+
+_IMAGE_NOTICE_SHOWN = False
+
+
+def _terminal_supports_native_images():
+    """Check if the terminal supports full-resolution inline images."""
+    term_program = os.environ.get("TERM_PROGRAM", "")
+    return term_program in _NATIVE_IMAGE_TERMINALS
+
+
+def _draw_image_native(abs_path):
+    """Render an image at full resolution using the iTerm2 inline image protocol.
+
+    Supported by iTerm2 and WezTerm. Returns True on success.
+    """
+    if not os.path.isfile(abs_path):
+        return False
+
+    try:
+        with open(abs_path, "rb") as f:
+            data = base64.b64encode(f.read()).decode("ascii")
+
+        name_b64 = base64.b64encode(
+            os.path.basename(abs_path).encode()
+        ).decode("ascii")
+
+        sys.stdout.write(
+            f"\033]1337;File=name={name_b64};inline=1;width=auto:{data}\a\n"
+        )
+        sys.stdout.flush()
+        return True
+    except Exception:
+        return False
+
+
+def _render_image_pixels(abs_path, max_width):
+    """Fallback: render image as colored half-blocks via rich-pixels.
+
+    Returns a Pixels renderable or None.
+    """
+    if not _HAS_PIXELS or not os.path.isfile(abs_path):
+        return None
+
+    try:
+        img = Image.open(abs_path)
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+
+        orig_w, orig_h = img.size
+        if orig_w > max_width:
+            scale = max_width / orig_w
+            img = img.resize(
+                (max_width, int(orig_h * scale)), Image.Resampling.LANCZOS
+            )
+
+        return Pixels.from_image(img)
+    except Exception:
+        return None
+
+
+def _show_image_notice():
+    """Show a one-time notice about image quality."""
+    global _IMAGE_NOTICE_SHOWN
+    if _IMAGE_NOTICE_SHOWN:
+        return
+    _IMAGE_NOTICE_SHOWN = True
+
+    if not _terminal_supports_native_images():
+        console.print(
+            "\n[dim]  Note: Diagrams are rendered as low-res terminal art.\n"
+            "  For full quality, use a terminal with inline image support:\n"
+            "  - iTerm2 (recommended): https://iterm2.com\n"
+            "  - WezTerm: https://wezfurlong.org/wezterm[/dim]"
+        )
+
+
+def _split_page_segments(raw_content):
+    """Split page content on image markers into (type, value) segments."""
+    parts = _IMG_MARKER.split(raw_content)
+    segments = []
+    i = 0
+    while i < len(parts):
+        if i % 3 == 0:
+            text = parts[i].strip()
+            if text:
+                segments.append(("text", text))
+        elif i % 3 == 1:
+            alt = parts[i]
+            path = parts[i + 1] if i + 1 < len(parts) else ""
+            i += 1
+            segments.append(("image", (alt, path)))
+        i += 1
+    return segments
+
+
+def _build_page_content_fallback(raw_content):
+    """Build page content using rich-pixels (for non-native terminals).
+
+    Returns a Group renderable with Markdown + pixel art inside a Panel.
+    """
+    max_img_width = console.width - _PANEL_OVERHEAD
+    parts = _IMG_MARKER.split(raw_content)
+
+    renderables = []
+    i = 0
+    while i < len(parts):
+        if i % 3 == 0:
+            segment = parts[i].strip()
+            if segment:
+                renderables.append(Markdown(segment))
+        elif i % 3 == 1:
+            alt = parts[i]
+            path = parts[i + 1] if i + 1 < len(parts) else ""
+            i += 1
+
+            img_renderable = _render_image_pixels(path, max_img_width)
+            if img_renderable is not None:
+                renderables.append(Text())
+                renderables.append(img_renderable)
+                renderables.append(Text(f"  {alt}", style="dim italic"))
+                renderables.append(Text())
+            else:
+                renderables.append(
+                    Text(f"  [Image: {alt}]", style="dim italic")
+                )
+        i += 1
+
+    if not renderables:
+        return Markdown(raw_content)
+    return Group(*renderables)
 
 
 def clear():
@@ -25,18 +180,64 @@ def clear():
 
 
 def render_page(page, current, total, module_title):
-    """Render a single lesson page inside a styled panel."""
+    """Render a single lesson page inside a styled panel.
+
+    Uses full-resolution native images in iTerm2/WezTerm.
+    Falls back to rich-pixels (low-res) in other terminals.
+    """
     clear()
-    content = Markdown(page["content"])
-    console.print(
-        Panel(
-            content,
-            title=f"[bold]{module_title}[/bold] — Page {current}/{total}",
-            subtitle=f"Page {current}/{total}",
-            box=box.ROUNDED,
-            padding=(1, 2),
+    raw = page["content"]
+    title = f"[bold]{module_title}[/bold] — Page {current}/{total}"
+    subtitle = f"Page {current}/{total}"
+    has_images = IMG_DELIM in raw
+
+    if not has_images:
+        # No images — single panel
+        console.print(
+            Panel(
+                Markdown(raw),
+                title=title,
+                subtitle=subtitle,
+                box=box.ROUNDED,
+                padding=(1, 2),
+            )
         )
-    )
+        return
+
+    if _terminal_supports_native_images():
+        # iTerm2 / WezTerm — render text in panel, images natively between
+        segments = _split_page_segments(raw)
+
+        console.print(
+            Panel(
+                f"[bold]{module_title}[/bold] — Page {current}/{total}",
+                box=box.ROUNDED,
+                padding=(0, 2),
+            )
+        )
+
+        for seg_type, seg_value in segments:
+            if seg_type == "text":
+                console.print()
+                console.print(Markdown(seg_value))
+            else:
+                alt, path = seg_value
+                console.print()
+                if not _draw_image_native(path):
+                    console.print(f"  [dim italic]\\[Image: {alt}][/dim italic]")
+    else:
+        # Fallback — rich-pixels inside panel
+        content = _build_page_content_fallback(raw)
+        console.print(
+            Panel(
+                content,
+                title=title,
+                subtitle=subtitle,
+                box=box.ROUNDED,
+                padding=(1, 2),
+            )
+        )
+        _show_image_notice()
 
 
 def wait_for_enter(message="Press Enter to continue..."):
