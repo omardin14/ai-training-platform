@@ -11,7 +11,9 @@ from learn.ui import (
     run_examples,
     run_lesson,
     run_quiz,
+    run_setup,
     show_challenge,
+    show_setup_notice,
 )
 
 
@@ -36,9 +38,14 @@ def main():
                 console.input("[dim]Press Enter to go back...[/dim]")
                 continue
 
+            setup_config = module.get("setup")
+
+            # Show one-time setup notice when entering a module with dependencies
+            show_setup_notice(setup_config)
+
             # Module menu loop
             while True:
-                action = module_menu(module["title"])
+                action = module_menu(module["title"], setup_config=setup_config)
 
                 if action == "back":
                     break
@@ -60,6 +67,7 @@ def main():
                         module["challenge"],
                         module["title"],
                         module["directory"],
+                        setup_config=setup_config,
                     )
                 elif action == "examples":
                     examples = module.get("examples", [])
@@ -76,6 +84,8 @@ def main():
                             module["title"],
                             module["directory"],
                         )
+                elif action == "setup":
+                    run_setup(setup_config)
 
     except KeyboardInterrupt:
         clear()

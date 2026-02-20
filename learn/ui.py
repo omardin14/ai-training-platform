@@ -480,10 +480,30 @@ def _reset_challenge(challenge, module_dir):
     wait_for_enter()
 
 
-def show_challenge(challenge, module_title, module_dir):
+def show_challenge(challenge, module_title, module_dir, setup_config=None):
     """Show challenge instructions with validate option."""
     while True:
         clear()
+
+        # Show setup warning if external dependency is not configured
+        if setup_config and not _check_setup(setup_config):
+            name = setup_config["name"]
+            instructions = setup_config.get("instructions", [])
+            steps = "\n".join(f"  {i + 1}. {s}" for i, s in enumerate(instructions))
+            console.print(
+                Panel(
+                    f"[bold]{name}[/bold] is not configured. The challenge will "
+                    f"fail without it.\n\n"
+                    f"[bold]To set up:[/bold]\n{steps}\n\n"
+                    f"[dim]Go back and select [bold]Setup {name}[/bold] from the "
+                    f"module menu, or set up manually.[/dim]",
+                    title=f"[bold yellow]Setup Required[/bold yellow]",
+                    box=box.ROUNDED,
+                    padding=(1, 2),
+                )
+            )
+            console.print()
+
         hints_text = "\n".join(
             f"  {i + 1}. {h}" for i, h in enumerate(challenge["hints"])
         )
@@ -634,19 +654,156 @@ def module_picker(modules):
     return selected
 
 
-def module_menu(module_title):
+def _write_env_values(env_values):
+    """Write environment variables to the project's .env file.
+
+    Skips keys that are already present. Updates os.environ so the
+    running process picks up the changes immediately.
+    """
+    project_root = _get_project_root()
+    env_path = os.path.join(project_root, ".env")
+
+    # Read existing .env content
+    existing = ""
+    if os.path.isfile(env_path):
+        with open(env_path, encoding="utf-8") as f:
+            existing = f.read()
+
+    # Determine which keys need to be added
+    to_add = {}
+    for key, value in env_values.items():
+        # Check if key is already defined (as KEY= at start of line)
+        if re.search(rf"^{re.escape(key)}\s*=", existing, re.MULTILINE):
+            continue
+        to_add[key] = value
+
+    if not to_add:
+        console.print(f"\n[dim]  Credentials already in .env file.[/dim]")
+        return
+
+    # Append new values
+    lines = []
+    if existing and not existing.endswith("\n"):
+        lines.append("")  # ensure newline before our block
+    for key, value in to_add.items():
+        lines.append(f"{key}={value}")
+        # Also set in current process so checks pass immediately
+        os.environ[key] = value
+
+    with open(env_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+    added = ", ".join(to_add.keys())
+    console.print(f"\n[green]  Added to .env: {added}[/green]")
+
+
+def _check_setup(setup_config):
+    """Check if a module's external dependencies are configured.
+
+    Returns True if all required env vars are set.
+    """
+    if not setup_config:
+        return True
+    env_vars = setup_config.get("check", {}).get("env_vars", [])
+    return all(os.environ.get(v) for v in env_vars)
+
+
+def show_setup_notice(setup_config):
+    """Show a notice panel about required external setup."""
+    if not setup_config or _check_setup(setup_config):
+        return
+
+    name = setup_config["name"]
+    instructions = setup_config.get("instructions", [])
+    steps = "\n".join(f"  {i + 1}. {s}" for i, s in enumerate(instructions))
+
+    console.print(
+        Panel(
+            f"This module requires [bold]{name}[/bold] to run the "
+            f"challenge and examples.\n\n"
+            f"[bold]To set up:[/bold]\n{steps}\n\n"
+            f"[dim]Select [bold]Setup {name}[/bold] from the menu below, "
+            f"or set up manually.[/dim]",
+            title=f"[bold yellow]Setup Required: {name}[/bold yellow]",
+            box=box.ROUNDED,
+            padding=(1, 2),
+        )
+    )
+
+
+def run_setup(setup_config):
+    """Run the setup make target for a module's external dependency."""
+    if not setup_config:
+        return
+
+    name = setup_config["name"]
+    make_target = setup_config.get("make_target")
+    module_dir = setup_config.get("module_dir")
+
+    if not make_target or not module_dir:
+        console.print(f"\n[bold red]  No setup target configured for {name}.[/bold red]\n")
+        wait_for_enter()
+        return
+
+    clear()
+    console.print(
+        Panel(
+            f"Setting up [bold]{name}[/bold]...\n\n"
+            f"Running [dim]make {make_target}[/dim] in [dim]{module_dir}/[/dim]",
+            title=f"[bold]Setup: {name}[/bold]",
+            box=box.ROUNDED,
+            padding=(1, 2),
+        )
+    )
+    console.print()
+
+    project_root = _get_project_root()
+    cwd = os.path.join(project_root, module_dir)
+
+    result = subprocess.run(
+        ["make", make_target],
+        cwd=cwd,
+        timeout=120,
+    )
+
+    console.print()
+    if result.returncode == 0:
+        console.print(f"[bold green]  {name} setup completed![/bold green]")
+
+        # Auto-write credentials to .env
+        env_values = setup_config.get("env_values", {})
+        if env_values:
+            _write_env_values(env_values)
+    else:
+        console.print(f"[bold red]  {name} setup had errors. Check the output above.[/bold red]")
+
+    wait_for_enter()
+
+
+def module_menu(module_title, setup_config=None):
     """Show the menu for a selected module. Returns the chosen action."""
     console.print()
+
+    choices = [
+        Choice(value="lesson", name="Start Lesson"),
+        Choice(value="quiz", name="Take Quiz"),
+        Choice(value="challenge", name="Coding Challenge"),
+        Choice(value="examples", name="Run Examples"),
+    ]
+
+    if setup_config:
+        name = setup_config["name"]
+        status = "[dim](configured)[/dim]" if _check_setup(setup_config) else ""
+        choices.append(
+            Choice(value="setup", name=f"Setup {name}")
+        )
+
+    choices.append(Separator())
+    choices.append(Choice(value="back", name="Back to Modules"))
+
     action = inquirer.select(
         message=f"{module_title}:",
-        choices=[
-            Choice(value="lesson", name="Start Lesson"),
-            Choice(value="quiz", name="Take Quiz"),
-            Choice(value="challenge", name="Coding Challenge"),
-            Choice(value="examples", name="Run Examples"),
-            Separator(),
-            Choice(value="back", name="Back to Modules"),
-        ],
+        choices=choices,
         pointer=">>>",
     ).execute()
 

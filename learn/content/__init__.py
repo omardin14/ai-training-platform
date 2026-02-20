@@ -18,6 +18,7 @@ from learn.content.module_13 import MODULE as MODULE_13
 from learn.content.module_14 import MODULE as MODULE_14
 from learn.content.module_15 import MODULE as MODULE_15
 from learn.content.module_16 import MODULE as MODULE_16
+from learn.content.module_17 import MODULE as MODULE_17
 from learn.parser import parse_readme
 
 # All available modules in order.
@@ -38,6 +39,7 @@ MODULES = [
     MODULE_14,
     MODULE_15,
     MODULE_16,
+    MODULE_17,
 ]
 
 # Resolve the project root (parent of learn/ package)
