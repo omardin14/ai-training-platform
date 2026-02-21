@@ -1,7 +1,7 @@
 # ============================================================
 # LangChain Training - Consolidated Dependencies
 # ============================================================
-# Shared requirements for all 18 modules.
+# Shared requirements for all 19 modules.
 # Install from any module folder: pip install -r ../requirements.txt
 
 # --- Core ---
