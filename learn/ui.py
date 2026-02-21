@@ -646,11 +646,10 @@ def course_picker(courses):
             choices.append(Choice(value=c["id"], name=f"{i}. {c['title']}"))
         else:
             choices.append(Choice(value=c["id"], name=f"{i}. {c['title']} (coming soon)"))
-    choices.append(Separator())
     choices.append(Choice(value=None, name="Quit"))
 
-    selected = inquirer.select(
-        message="Select a course:",
+    selected = inquirer.fuzzy(
+        message="Select a course (type to filter):",
         choices=choices,
         pointer=">>>",
     ).execute()

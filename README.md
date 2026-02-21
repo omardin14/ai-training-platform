@@ -49,7 +49,8 @@ Agent architectures, custom tools, multi-agent systems, and LangGraph:
 
 | # | Module | Topics |
 |---|--------|--------|
-| 01 | ReAct Agents & Custom Tools | ReAct loop, `@tool` decorator, `create_react_agent`, multi-tool agents |
+| 01 | ReAct Agents & Custom Tools | ReAct loop, `@tool` decorator, `create_agent`, multi-tool agents |
+| 02 | Agent Conversations | Message history, follow-up questions, `HumanMessage`, `AIMessage` |
 
 More modules coming soon.
 
