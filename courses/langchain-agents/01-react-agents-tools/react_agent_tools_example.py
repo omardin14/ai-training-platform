@@ -60,7 +60,7 @@ def main():
 
     import math
     from langchain_core.tools import tool
-    from langgraph.prebuilt import create_react_agent
+    from langchain.agents import create_agent
 
     # Define a simple math tool
     @tool
@@ -69,7 +69,7 @@ def main():
         return math.sqrt(float(value))
 
     # Create the ReAct agent with the tool
-    agent = create_react_agent(model, [square_root])
+    agent = create_agent(model, [square_root])
 
     # Invoke the agent with a natural language query
     query = "What is the square root of 256?"
@@ -167,7 +167,7 @@ def main():
     print("-"*70)
 
     tools = [triangle_area]
-    app = create_react_agent(model, tools)
+    app = create_agent(model, tools)
 
     query = "What is the area of a triangle with base 12 and height 8?"
     print(f"\n  📥 Query: '{query}'\n")
@@ -208,7 +208,7 @@ def main():
         return f"Recipe '{recipe_id}' not found in catalog."
 
     # Agent with both tools
-    multi_agent = create_react_agent(model, [triangle_area, get_recipe])
+    multi_agent = create_agent(model, [triangle_area, get_recipe])
 
     query = "Can you find me the recipe for pasta-carbonara?"
     print(f"  📥 Query: '{query}'\n")

@@ -57,8 +57,8 @@ MODULE = {
         "hints": [
             "The first XXXX___ should be an import (tool)",
             "The second XXXX___ should be the decorator name (tool)",
-            "The third XXXX___ should be an import (create_react_agent)",
-            "The fourth XXXX___ should be a function name (create_react_agent)",
+            "The third XXXX___ should be an import (create_agent)",
+            "The fourth XXXX___ should be a function name (create_agent)",
             "The fifth XXXX___ should be a method name (invoke)",
         ],
     },

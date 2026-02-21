@@ -64,10 +64,10 @@ def get_planet_info(planet_id: str) -> str:
     return f"Planet '{planet_id}' not found in catalog."
 
 # Step 3: Import and create the ReAct agent
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
 # Create the agent with the custom tool
-agent = create_react_agent(model, [get_planet_info])
+agent = create_agent(model, [get_planet_info])
 
 # Step 4: Invoke the agent with a natural language question
 question = "How many moons does Jupiter have and what is its diameter?"

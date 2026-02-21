@@ -38,12 +38,12 @@ The agent decides **which tool to use** and **what inputs to provide** based pur
 <!-- lesson:page Creating a ReAct Agent -->
 ## Creating a ReAct Agent
 
-LangChain provides `create_react_agent` from `langgraph.prebuilt` to build ReAct agents quickly:
+LangChain provides `create_agent` from `langgraph.prebuilt` to build ReAct agents quickly:
 
 ```python
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 import math
 
 # Set up the LLM
@@ -56,7 +56,7 @@ def square_root(value: str) -> float:
     return math.sqrt(float(value))
 
 # Create the agent with the tool
-agent = create_react_agent(model, [square_root])
+agent = create_agent(model, [square_root])
 
 # Ask a question in natural language
 query = "What is the square root of 256?"
@@ -67,7 +67,7 @@ print(response['messages'][-1].content)
 ```
 
 ### Key Steps:
-1. **Import** `tool`, `ChatOpenAI`, and `create_react_agent`
+1. **Import** `tool`, `ChatOpenAI`, and `create_agent`
 2. **Define tools** using the `@tool` decorator
 3. **Create the agent** by passing the model and a list of tools
 4. **Invoke** the agent with a `messages` list containing the user's question
@@ -100,14 +100,14 @@ def triangle_area(base: float, height: float) -> float:
 
 ### Registering and Using the Tool
 
-Make the tool available by passing it in a list to `create_react_agent`:
+Make the tool available by passing it in a list to `create_agent`:
 
 ```python
 # Register tools in a list (you can include multiple tools)
 tools = [triangle_area]
 
 # Create the agent with the tools
-app = create_react_agent(model, tools)
+app = create_agent(model, tools)
 
 # Ask a question in natural language
 query = "What is the area of a triangle with base 12 and height 8?"
@@ -148,7 +148,7 @@ def get_recipe(recipe_id: str) -> str:
     """Look up a recipe from the catalog by its ID."""
     # ... lookup logic ...
 
-agent = create_react_agent(model, [triangle_area, get_recipe])
+agent = create_agent(model, [triangle_area, get_recipe])
 ```
 
 When a question is about geometry, the agent calls `triangle_area`. When it's about recipes, it calls `get_recipe`. The agent makes this decision automatically based on tool descriptions.
@@ -179,7 +179,7 @@ This example demonstrates:
 - The tool's **docstring** is how the LLM decides when to call it
 - Use **typed parameters** so the LLM extracts values from the query automatically
 - Agents can use **multiple tools** and pick the right one per question
-- Pass tools as a **list** to `create_react_agent`
+- Pass tools as a **list** to `create_agent`
 
 <!-- lesson:end -->
 
@@ -238,7 +238,7 @@ This will:
 The module requires:
 - `langchain-openai`: For OpenAI model integration
 - `langchain-core`: For the `@tool` decorator
-- `langgraph`: For creating ReAct agents (`create_react_agent`)
+- `langchain`: For creating agents (`create_agent`)
 - `python-dotenv`: For loading environment variables from `.env` file
 
 All dependencies are listed in `requirements.txt` and installed automatically with `make install`.

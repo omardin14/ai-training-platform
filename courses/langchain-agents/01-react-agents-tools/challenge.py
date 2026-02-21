@@ -7,7 +7,7 @@ Replace the XXXX___ placeholders with the correct code.
 This challenge tests your understanding of:
 - Importing the @tool decorator
 - Creating custom tools with the @tool decorator
-- Creating a ReAct agent with create_react_agent
+- Creating an agent with create_agent
 - Invoking the agent with a natural language question
 """
 
@@ -72,9 +72,9 @@ def get_planet_info(planet_id: str) -> str:
         )
     return f"Planet '{planet_id}' not found in catalog."
 
-# Step 3: Import and create the ReAct agent
-# Replace XXXX___ with the correct import (create_react_agent)
-from langgraph.prebuilt import XXXX___
+# Step 3: Import and create the agent
+# Replace XXXX___ with the correct import (create_agent)
+from langchain.agents import XXXX___
 
 # Create the agent with the custom tool
 # Replace XXXX___ with the correct function name
