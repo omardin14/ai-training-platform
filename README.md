@@ -43,13 +43,19 @@ That's it. `make learn` handles virtual environment creation, dependency install
 | 18 | Graph RAG Chain | GraphCypherQAChain, natural language to Cypher |
 | 19 | Improving Graph RAG | Few-shot Cypher, fulltext search, advanced prompting |
 
+### LangChain Agents & LangGraph (Available)
+
+Agent architectures, custom tools, multi-agent systems, and LangGraph:
+
+| # | Module | Topics |
+|---|--------|--------|
+| 01 | ReAct Agents & Custom Tools | ReAct loop, `@tool` decorator, `create_react_agent`, multi-tool agents |
+
+More modules coming soon.
+
 ### AI Theory & Foundations (Coming Soon)
 
 Neural networks, transformers, embeddings, and LLM theory.
-
-### LangChain Agents & LangGraph (Coming Soon)
-
-Agent architectures, multi-agent systems, and LangGraph.
 
 ## Interactive Learning Tool
 
@@ -78,19 +84,23 @@ Navigate with arrow keys, no need to leave the tool.
 │   ├── parser.py            # README.md lesson page parser
 │   └── content/             # Course and module configs
 │       ├── courses.py       # Course registry
-│       └── langchain_fundamentals/  # LangChain course content package
-│           └── module_XX.py # Per-module quiz, challenge, example configs
+│       ├── langchain_fundamentals/  # LangChain Fundamentals content
+│       │   └── module_XX.py # Per-module quiz, challenge, example configs
+│       └── langchain_agents/        # LangChain Agents content
+│           └── module_XX.py
 ├── courses/
-│   └── langchain-fundamentals/
-│       ├── Makefile.common   # Course-level Makefile wrapper
-│       ├── 01-langchain-models/
-│       │   ├── README.md     # Lesson content (source of truth)
-│       │   ├── Makefile      # Module-level make targets
-│       │   ├── *_example.py  # Working code examples
-│       │   ├── challenge.py  # Coding challenge (fill in XXXX___)
-│       │   └── challenge_solution.py
-│       ├── 02-prompt-templates/
-│       │   └── ...
+│   ├── langchain-fundamentals/      # 19 modules (01–19)
+│   │   ├── Makefile.common
+│   │   ├── 01-langchain-models/
+│   │   │   ├── README.md            # Lesson content (source of truth)
+│   │   │   ├── Makefile             # Module-level make targets
+│   │   │   ├── *_example.py         # Working code examples
+│   │   │   ├── challenge.py         # Coding challenge (fill in XXXX___)
+│   │   │   └── challenge_solution.py
+│   │   └── ...
+│   └── langchain-agents/            # Agent modules
+│       ├── Makefile.common
+│       ├── 01-react-agents-tools/
 │       └── ...
 └── utils/
     └── docs/                 # Sample documents for RAG modules

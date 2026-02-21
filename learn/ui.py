@@ -641,11 +641,11 @@ def course_picker(courses):
     console.print()
 
     choices = []
-    for c in courses:
+    for i, c in enumerate(courses, 1):
         if c["status"] == "available":
-            choices.append(Choice(value=c["id"], name=f"{c['title']}"))
+            choices.append(Choice(value=c["id"], name=f"{i}. {c['title']}"))
         else:
-            choices.append(Choice(value=c["id"], name=f"{c['title']} (coming soon)"))
+            choices.append(Choice(value=c["id"], name=f"{i}. {c['title']} (coming soon)"))
     choices.append(Separator())
     choices.append(Choice(value=None, name="Quit"))
 
