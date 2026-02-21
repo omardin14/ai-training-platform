@@ -1,0 +1,7 @@
+# Course-level Makefile.common wrapper for langchain-agents.
+# Sets ROOT_DIR so module Makefiles resolve paths to the project root.
+#
+# GNU Make resolves include paths relative to CWD (the module directory),
+# so from courses/langchain-agents/<module>/ the root is ../../..
+ROOT_DIR := ../../..
+include ../../../Makefile.common

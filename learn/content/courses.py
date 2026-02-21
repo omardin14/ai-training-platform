@@ -1,6 +1,7 @@
 """Course registry for the AI Training platform."""
 
 from learn.content.langchain_fundamentals import LANGCHAIN_MODULES
+from learn.content.langchain_agents import AGENTS_MODULES
 
 COURSES = [
     {
@@ -21,7 +22,7 @@ COURSES = [
         "id": "langchain-agents",
         "title": "LangChain Agents & LangGraph",
         "description": "Agent architectures, multi-agent systems, and LangGraph.",
-        "modules": [],
-        "status": "coming_soon",
+        "modules": AGENTS_MODULES,
+        "status": "available",
     },
 ]
