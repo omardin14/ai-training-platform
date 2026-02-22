@@ -51,6 +51,7 @@ Agent architectures, custom tools, multi-agent systems, and LangGraph:
 |---|--------|--------|
 | 01 | ReAct Agents & Custom Tools | ReAct loop, `@tool` decorator, `create_agent`, multi-tool agents |
 | 02 | Agent Conversations | Message history, follow-up questions, `HumanMessage`, `AIMessage` |
+| 03 | Building Graphs | `StateGraph`, nodes, edges, `START`/`END`, `add_messages`, `.compile()` |
 
 More modules coming soon.
 
