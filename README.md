@@ -54,6 +54,7 @@ Agent architectures, custom tools, multi-agent systems, and LangGraph:
 | 03 | Building Graphs | `StateGraph`, nodes, edges, `START`/`END`, `add_messages`, `.compile()` |
 | 04 | Chatbot Responses | `.stream()`, `stream_graph_updates()`, graph visualisation, hallucination awareness |
 | 05 | Adding External Tools | Wikipedia tool, `.bind_tools()`, `ToolNode`, `tools_condition`, conditional edges |
+| 06 | Memory & Conversation | `MemorySaver`, `checkpointer`, `thread_id`, conversation context, follow-up questions |
 
 More modules coming soon.
 
