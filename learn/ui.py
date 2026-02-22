@@ -6,10 +6,12 @@ import random
 import re
 import subprocess
 import sys
+import time
 
 from rich.console import Console, Group
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.rule import Rule
 from rich.text import Text
 from rich import box
 from InquirerPy import inquirer
@@ -17,6 +19,13 @@ from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
 
 from learn.parser import IMG_DELIM
+from learn.theme import (
+    WELCOME_BANNER,
+    get_course_art,
+    get_course_color,
+    SHORTCUTS,
+)
+from learn.progress import get_module_progress
 
 # Optional: rich-pixels for fallback terminal image rendering
 try:
@@ -176,19 +185,30 @@ def clear():
     # Print blank lines to push old content into scrollback consistently.
     # Using \033[2J (console.clear) is unreliable — some terminals preserve
     # scrollback, others don't, leading to inconsistent behavior.
+    console.print()
+    console.print(Rule(style="dim"))
+    time.sleep(0.1)
     console.print("\n" * console.height)
 
 
-def render_page(page, current, total, module_title):
+def _build_progress_bar(current, total, width=20):
+    """Build a visual progress bar: [████████░░░░] 3/5"""
+    filled = int(width * current / total)
+    empty = width - filled
+    return f"[{'█' * filled}{'░' * empty}] {current}/{total}"
+
+
+def render_page(page, current, total, module_title, course_id=None):
     """Render a single lesson page inside a styled panel.
 
     Uses full-resolution native images in iTerm2/WezTerm.
     Falls back to rich-pixels (low-res) in other terminals.
     """
     clear()
+    color = get_course_color(course_id)
     raw = page["content"]
-    title = f"[bold]{module_title}[/bold] — Page {current}/{total}"
-    subtitle = f"Page {current}/{total}"
+    title = f"[bold {color}]{module_title}[/bold {color}] — Page {current}/{total}"
+    subtitle = _build_progress_bar(current, total)
     has_images = IMG_DELIM in raw
 
     if not has_images:
@@ -199,9 +219,11 @@ def render_page(page, current, total, module_title):
                 title=title,
                 subtitle=subtitle,
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(1, 2),
             )
         )
+        console.print(SHORTCUTS["lesson"])
         return
 
     if _terminal_supports_native_images():
@@ -210,8 +232,9 @@ def render_page(page, current, total, module_title):
 
         console.print(
             Panel(
-                f"[bold]{module_title}[/bold] — Page {current}/{total}",
+                f"[bold {color}]{module_title}[/bold {color}] — Page {current}/{total}",
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(0, 2),
             )
         )
@@ -225,6 +248,7 @@ def render_page(page, current, total, module_title):
                 console.print()
                 if not _draw_image_native(path):
                     console.print(f"  [dim italic]\\[Image: {alt}][/dim italic]")
+        console.print(SHORTCUTS["lesson"])
     else:
         # Fallback — rich-pixels inside panel
         content = _build_page_content_fallback(raw)
@@ -234,10 +258,12 @@ def render_page(page, current, total, module_title):
                 title=title,
                 subtitle=subtitle,
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(1, 2),
             )
         )
         _show_image_notice()
+        console.print(SHORTCUTS["lesson"])
 
 
 def wait_for_enter(message="Press Enter to continue..."):
@@ -245,10 +271,10 @@ def wait_for_enter(message="Press Enter to continue..."):
     console.input(f"[dim]{message}[/dim]")
 
 
-def run_lesson(pages, module_title):
+def run_lesson(pages, module_title, course_id=None):
     """Walk through lesson pages one at a time."""
     for i, page in enumerate(pages):
-        render_page(page, i + 1, len(pages), module_title)
+        render_page(page, i + 1, len(pages), module_title, course_id=course_id)
         if i < len(pages) - 1:
             wait_for_enter()
         else:
@@ -257,23 +283,48 @@ def run_lesson(pages, module_title):
             wait_for_enter("Press Enter to return to menu...")
 
 
-def run_quiz(questions, module_title):
-    """Run an interactive quiz with arrow-key selection."""
+def show_lesson_toc(pages, module_title, course_id=None):
+    """Show a table of contents for the lesson pages."""
+    color = get_course_color(course_id)
     clear()
+    toc_lines = []
+    for i, page in enumerate(pages, 1):
+        title = page.get("title", f"Page {i}")
+        toc_lines.append(f"  {i}. {title}")
+    toc = "\n".join(toc_lines)
+    console.print(
+        Panel(
+            f"[bold]Lesson Overview[/bold] — {len(pages)} pages\n\n{toc}",
+            title=f"[bold {color}]{module_title}[/bold {color}]",
+            box=box.ROUNDED,
+            border_style=color,
+            padding=(1, 2),
+        )
+    )
+    wait_for_enter("Press Enter to begin the lesson...")
+
+
+def run_quiz(questions, module_title, course_id=None):
+    """Run an interactive quiz with arrow-key selection. Returns (score, total)."""
+    clear()
+    color = get_course_color(course_id)
     score = 0
     total = len(questions)
+    incorrect = []
 
     for i, q in enumerate(questions):
         clear()
         console.print(
             Panel(
                 Markdown(q["question"]),
-                title=f"[bold]Quiz: Question {i + 1} of {total}[/bold]",
+                title=f"[bold {color}]Quiz: Question {i + 1} of {total}[/bold {color}]",
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(1, 2),
             )
         )
         console.print()
+        console.print(SHORTCUTS["quiz"])
 
         # Shuffle choices so the correct answer isn't always in the same position
         indexed_choices = list(enumerate(q["choices"]))
@@ -300,6 +351,7 @@ def run_quiz(questions, module_title):
                 f"[bold red]  Incorrect.[/bold red] The correct answer is: {correct_text}"
             )
             console.print(f"  {q['explanation']}")
+            incorrect.append((q, answer))
 
         wait_for_enter()
 
@@ -317,12 +369,46 @@ def run_quiz(questions, module_title):
     console.print(
         Panel(
             f"[bold]Score: {score}/{total}[/bold]\n\n{grade}",
-            title=f"[bold]Quiz Results: {module_title}[/bold]",
+            title=f"[bold {color}]Quiz Results: {module_title}[/bold {color}]",
             box=box.ROUNDED,
+            border_style=color,
             padding=(1, 2),
         )
     )
-    wait_for_enter("Press Enter to return to menu...")
+
+    # F7: Quiz review screen
+    if incorrect:
+        console.print()
+        review = inquirer.select(
+            message="What next?",
+            choices=[
+                Choice(value="review", name="Review Incorrect Answers"),
+                Choice(value="back", name="Back to Menu"),
+            ],
+            pointer=">>>",
+        ).execute()
+
+        if review == "review":
+            for q, user_answer in incorrect:
+                clear()
+                console.print(
+                    Panel(
+                        Markdown(q["question"]),
+                        title=f"[bold {color}]Review[/bold {color}]",
+                        box=box.ROUNDED,
+                        border_style=color,
+                        padding=(1, 2),
+                    )
+                )
+                console.print()
+                console.print(f"  [bold red]Your answer:[/bold red] {q['choices'][user_answer]}")
+                console.print(f"  [bold green]Correct answer:[/bold green] {q['choices'][q['answer']]}")
+                console.print(f"\n  [dim]{q['explanation']}[/dim]")
+                wait_for_enter()
+    else:
+        wait_for_enter("Press Enter to return to menu...")
+
+    return score, total
 
 
 def _get_project_root():
@@ -352,7 +438,7 @@ def _check_placeholders(challenge_path):
 
 
 def _validate_challenge(challenge, module_dir):
-    """Validate the challenge solution inline."""
+    """Validate the challenge solution inline. Returns True if passed."""
     project_root = _get_project_root()
     challenge_path = os.path.join(project_root, module_dir, challenge["file"])
 
@@ -361,7 +447,7 @@ def _validate_challenge(challenge, module_dir):
             f"\n[bold red]  Error: {module_dir}/{challenge['file']} not found![/bold red]\n"
         )
         wait_for_enter()
-        return
+        return False
 
     console.print()
 
@@ -382,9 +468,10 @@ def _validate_challenge(challenge, module_dir):
                 padding=(1, 2),
             )
         )
-    else:
-        console.print("[dim]  Running your solution...[/dim]\n")
+        wait_for_enter()
+        return False
 
+    with console.status("Running your solution...", spinner="dots"):
         try:
             result = subprocess.run(
                 [sys.executable, challenge["file"]],
@@ -404,36 +491,38 @@ def _validate_challenge(challenge, module_dir):
                 )
             )
             wait_for_enter()
-            return
+            return False
 
-        if result.returncode == 0:
-            output = result.stdout.strip()
-            console.print(
-                Panel(
-                    f"[bold green]PASSED[/bold green] -- Your solution works!\n\n"
-                    f"[dim]{output}[/dim]" if output else
-                    "[bold green]PASSED[/bold green] -- Your solution works!",
-                    title="[bold green]Validation Result[/bold green]",
-                    box=box.ROUNDED,
-                    padding=(1, 2),
-                )
+    if result.returncode == 0:
+        output = result.stdout.strip()
+        console.print(
+            Panel(
+                f"[bold green]PASSED[/bold green] -- Your solution works!\n\n"
+                f"[dim]{output}[/dim]" if output else
+                "[bold green]PASSED[/bold green] -- Your solution works!",
+                title="[bold green]Validation Result[/bold green]",
+                box=box.ROUNDED,
+                padding=(1, 2),
             )
-        else:
-            error = result.stderr.strip() or result.stdout.strip()
-            # Truncate long errors
-            if len(error) > 800:
-                error = error[:800] + "\n..."
-            console.print(
-                Panel(
-                    f"[bold red]FAILED[/bold red] -- Your code has errors.\n\n"
-                    f"```\n{error}\n```",
-                    title="[bold red]Validation Result[/bold red]",
-                    box=box.ROUNDED,
-                    padding=(1, 2),
-                )
+        )
+        wait_for_enter()
+        return True
+    else:
+        error = result.stderr.strip() or result.stdout.strip()
+        # Truncate long errors
+        if len(error) > 800:
+            error = error[:800] + "\n..."
+        console.print(
+            Panel(
+                f"[bold red]FAILED[/bold red] -- Your code has errors.\n\n"
+                f"```\n{error}\n```",
+                title="[bold red]Validation Result[/bold red]",
+                box=box.ROUNDED,
+                padding=(1, 2),
             )
-
-    wait_for_enter()
+        )
+        wait_for_enter()
+        return False
 
 
 def _reset_challenge(challenge, module_dir):
@@ -480,8 +569,11 @@ def _reset_challenge(challenge, module_dir):
     wait_for_enter()
 
 
-def show_challenge(challenge, module_title, module_dir, setup_config=None):
-    """Show challenge instructions with validate option."""
+def show_challenge(challenge, module_title, module_dir, setup_config=None,
+                   course_id=None):
+    """Show challenge instructions with validate option. Returns True if passed."""
+    color = get_course_color(course_id)
+    passed = False
     while True:
         clear()
 
@@ -531,12 +623,14 @@ def show_challenge(challenge, module_title, module_dir, setup_config=None):
         console.print(
             Panel(
                 Markdown(content),
-                title=f"[bold]Coding Challenge: {module_title}[/bold]",
+                title=f"[bold {color}]Coding Challenge: {module_title}[/bold {color}]",
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(1, 2),
             )
         )
         console.print()
+        console.print(SHORTCUTS["challenge"])
 
         action = inquirer.select(
             message="Challenge:",
@@ -552,13 +646,17 @@ def show_challenge(challenge, module_title, module_dir, setup_config=None):
         if action == "back":
             break
         elif action == "validate":
-            _validate_challenge(challenge, module_dir)
+            if _validate_challenge(challenge, module_dir):
+                passed = True
         elif action == "reset":
             _reset_challenge(challenge, module_dir)
 
+    return passed
 
-def run_examples(examples, module_title, module_dir):
+
+def run_examples(examples, module_title, module_dir, course_id=None):
     """Run example scripts from within the learn tool."""
+    color = get_course_color(course_id)
     project_root = _get_project_root()
     cwd = os.path.join(project_root, module_dir)
 
@@ -568,8 +666,9 @@ def run_examples(examples, module_title, module_dir):
         console.print(
             Panel(
                 f"[bold]{module_title}[/bold] has {len(examples)} example scripts.",
-                title="[bold]Run Examples[/bold]",
+                title=f"[bold {color}]Run Examples[/bold {color}]",
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(1, 2),
             )
         )
@@ -604,8 +703,9 @@ def run_examples(examples, module_title, module_dir):
         console.print(
             Panel(
                 f"Running [bold]{script}[/bold]...",
-                title=f"[bold]{module_title}[/bold]",
+                title=f"[bold {color}]{module_title}[/bold {color}]",
                 box=box.ROUNDED,
+                border_style=color,
                 padding=(1, 2),
             )
         )
@@ -626,19 +726,26 @@ def run_examples(examples, module_title, module_dir):
         wait_for_enter()
 
 
-def course_picker(courses):
+def course_picker(courses, streak=0):
     """Show the course selection menu. Returns a course ID or None to quit."""
     clear()
+    console.print(Text(WELCOME_BANNER, style="bold cyan"))
+
+    streak_msg = ""
+    if streak > 1:
+        streak_msg = f"\n[bold yellow]{streak}-day learning streak![/bold yellow]"
+
     console.print(
         Panel(
-            "[bold]Welcome to the AI Training Platform![/bold]\n\n"
-            "Select a course to start learning.",
+            f"[bold]Welcome to the AI Training Platform![/bold]\n\n"
+            f"Select a course to start learning.{streak_msg}",
             title="[bold]AI Training[/bold]",
             box=box.ROUNDED,
             padding=(1, 2),
         )
     )
     console.print()
+    console.print(SHORTCUTS["course_picker"])
 
     choices = []
     for i, c in enumerate(courses, 1):
@@ -657,23 +764,69 @@ def course_picker(courses):
     return selected
 
 
-def module_picker(modules, course_title):
+def _get_module_description(module_dir):
+    """Read a short description from a module's README.md."""
+    project_root = _get_project_root()
+    readme_path = os.path.join(project_root, module_dir, "README.md")
+    if not os.path.isfile(readme_path):
+        return ""
+    try:
+        with open(readme_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or line.startswith("<!--"):
+                    continue
+                if len(line) > 100:
+                    return line[:97] + "..."
+                return line
+    except OSError:
+        return ""
+    return ""
+
+
+def module_picker(modules, course_title, course_id=None, progress=None):
     """Show the module selection menu. Returns a module ID or None to go back."""
     clear()
+    color = get_course_color(course_id)
+
+    # F2: Course ASCII art
+    art = get_course_art(course_id)
+    if art:
+        console.print(Text(art, style=f"bold {color}"))
+
+    # F8: Module descriptions
+    desc_lines = []
+    for m in modules:
+        desc = _get_module_description(m.get("directory", ""))
+        if desc:
+            desc_lines.append(f"  [bold]{m['id']}[/bold] {m['title']} — [dim]{desc}[/dim]")
+        else:
+            desc_lines.append(f"  [bold]{m['id']}[/bold] {m['title']}")
+    desc_text = "\n".join(desc_lines)
+
     console.print(
         Panel(
-            f"[bold]{course_title}[/bold]\n\n"
-            "Select a module to start learning.",
-            title="[bold]AI Training[/bold]",
+            f"[bold {color}]{course_title}[/bold {color}]\n\n{desc_text}",
+            title=f"[bold {color}]AI Training[/bold {color}]",
             box=box.ROUNDED,
+            border_style=color,
             padding=(1, 2),
         )
     )
     console.print()
+    console.print(SHORTCUTS["module_picker"])
 
     choices = []
     for m in modules:
-        choices.append(Choice(value=m["id"], name=f"{m['id']} - {m['title']}"))
+        name = f"{m['id']} - {m['title']}"
+        # F3: Progress indicators
+        if progress:
+            mp = get_module_progress(progress, course_id, m["id"])
+            if mp.get("lesson") and mp.get("quiz_score"):
+                name += " ✓"
+            elif mp:
+                name += " ~"
+        choices.append(Choice(value=m["id"], name=name))
     choices.append(Choice(value=None, name="Back to Courses"))
 
     selected = inquirer.fuzzy(
@@ -791,12 +944,17 @@ def run_setup(setup_config):
     project_root = _get_project_root()
     cwd = os.path.join(project_root, module_dir)
 
-    result = subprocess.run(
-        ["make", make_target],
-        cwd=cwd,
-        timeout=120,
-    )
+    with console.status(f"Running setup for {name}...", spinner="dots"):
+        result = subprocess.run(
+            ["make", make_target],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
 
+    if result.stdout.strip():
+        console.print(result.stdout.strip())
     console.print()
     if result.returncode == 0:
         console.print(f"[bold green]  {name} setup completed![/bold green]")
@@ -806,21 +964,36 @@ def run_setup(setup_config):
         if env_values:
             _write_env_values(env_values)
     else:
+        if result.stderr.strip():
+            console.print(result.stderr.strip())
         console.print(f"[bold red]  {name} setup had errors. Check the output above.[/bold red]")
 
     wait_for_enter()
 
 
-def module_menu(module_title, setup_config=None, has_challenge=True, has_examples=True):
+def module_menu(module_title, setup_config=None, has_challenge=True, has_examples=True,
+                course_id=None, mod_progress=None):
     """Show the menu for a selected module. Returns the chosen action."""
     console.print()
 
+    # F3: Progress indicators on menu items
+    lesson_label = "Start Lesson"
+    quiz_label = "Take Quiz"
+    challenge_label = "Coding Challenge"
+    if mod_progress:
+        if mod_progress.get("lesson"):
+            lesson_label += " ✓"
+        if mod_progress.get("quiz_score"):
+            quiz_label += f" ({mod_progress['quiz_score']})"
+        if mod_progress.get("challenge"):
+            challenge_label += " ✓"
+
     choices = [
-        Choice(value="lesson", name="Start Lesson"),
-        Choice(value="quiz", name="Take Quiz"),
+        Choice(value="lesson", name=lesson_label),
+        Choice(value="quiz", name=quiz_label),
     ]
     if has_challenge:
-        choices.append(Choice(value="challenge", name="Coding Challenge"))
+        choices.append(Choice(value="challenge", name=challenge_label))
     if has_examples:
         choices.append(Choice(value="examples", name="Run Examples"))
 
@@ -833,6 +1006,8 @@ def module_menu(module_title, setup_config=None, has_challenge=True, has_example
 
     choices.append(Separator())
     choices.append(Choice(value="back", name="Back"))
+
+    console.print(SHORTCUTS["module_menu"])
 
     action = inquirer.select(
         message=f"{module_title}:",
