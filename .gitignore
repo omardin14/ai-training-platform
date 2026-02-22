@@ -1,6 +1,9 @@
 # TO-DO List
 to-do.md
 
+# Learning progress
+.learn-progress.json
+
 # Environment variables
 .env
 .env.local
