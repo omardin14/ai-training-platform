@@ -53,6 +53,7 @@ Agent architectures, custom tools, multi-agent systems, and LangGraph:
 | 02 | Agent Conversations | Message history, follow-up questions, `HumanMessage`, `AIMessage` |
 | 03 | Building Graphs | `StateGraph`, nodes, edges, `START`/`END`, `add_messages`, `.compile()` |
 | 04 | Chatbot Responses | `.stream()`, `stream_graph_updates()`, graph visualisation, hallucination awareness |
+| 05 | Adding External Tools | Wikipedia tool, `.bind_tools()`, `ToolNode`, `tools_condition`, conditional edges |
 
 More modules coming soon.
 
