@@ -342,20 +342,132 @@ Parameters: `chunk_size` (500-1000 chars typical), `chunk_overlap` (50-200 chars
 | **Sparse** (BM25) | Keyword/term frequency matching (`BM25Retriever.from_documents()`) | Exact terms, names, codes, rare words |
 | **Hybrid** | Combines dense + sparse results | Best overall accuracy |
 
-### Knowledge Graphs
+### Vector Databases (Chroma / FAISS)
+
+**Setup and Storage:**
+
+```python
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# Create from documents and persist to disk
+vectorstore = Chroma.from_documents(
+    documents=split_docs,
+    embedding=embedding_function,
+    persist_directory="./chroma_db"     # Persists embeddings for reuse
+)
+```
+
+**Querying:**
+
+```python
+# Create a retriever
+retriever = vectorstore.as_retriever(
+    search_type="similarity",           # Default: cosine similarity
+    search_kwargs={"k": 3}              # Return top 3 matches
+)
+results = retriever.invoke("What is the refund policy?")
+```
+
+**BM25 (Sparse) Retriever:**
+
+```python
+from langchain_community.retrievers import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_documents(documents, k=5)
+results = bm25_retriever.invoke("exact keyword search")
+```
+
+| Aspect | Dense (Chroma/FAISS) | Sparse (BM25) |
+|--------|---------------------|---------------|
+| **Matching** | Semantic similarity via embeddings | Keyword/term frequency |
+| **Strengths** | Paraphrased queries, conceptual matching | Exact terms, rare words, technical jargon |
+| **Limitations** | Struggles with rare terms, needs embedding API | Misses semantic similarity |
+| **Cost** | Embedding API calls per document + query | Free (no API calls) |
+
+**Best practice:** Use dense retrieval as default. Add BM25 for hybrid retrieval when exact keyword matching matters.
+
+### Graph Database (Neo4j)
 
 For structured relationships that vectors cannot capture. Use when data has entity relationships (org charts, product catalogues, compliance rules).
 
 **Graph RAG vs Vector RAG:** Vector RAG matches semantic similarity (good for "find documents about X"). Graph RAG traverses explicit relationships (good for "how does X relate to Y?"). Use vector RAG as default; add graph RAG when your data has rich relational structure.
 
-| Component | What It Does |
-|-----------|-------------|
-| `LLMGraphTransformer` | Extracts entities and relationships from text |
-| `Neo4jGraph` | Connects to Neo4j database, stores graph documents |
-| `GraphCypherQAChain` | Translates natural language → Cypher query → natural language answer |
-| `validate_cypher=True` | Auto-corrects relationship direction errors |
-| `exclude_types` | Removes node types from schema to reduce LLM search space |
-| Few-shot Cypher | Example question-to-Cypher pairs via `FewShotPromptTemplate` + `cypher_prompt` param |
+**Connect to Neo4j:**
+
+```python
+from langchain_neo4j import Neo4jGraph
+
+graph = Neo4jGraph(
+    url="bolt://localhost:7687",        # or NEO4J_URI env var
+    username="neo4j",                   # or NEO4J_USERNAME env var
+    password="your-password"            # or NEO4J_PASSWORD env var
+)
+```
+
+**Transform Text → Graph Documents:**
+
+```python
+from langchain_experimental.graph_transformers import LLMGraphTransformer
+
+llm_transformer = LLMGraphTransformer(llm=ChatOpenAI(temperature=0))
+graph_documents = llm_transformer.convert_to_graph_documents(documents)
+# Produces: nodes (entities with id, type, properties)
+#           relationships (source → type → target)
+```
+
+**Store in Neo4j:**
+
+```python
+graph.add_graph_documents(
+    graph_documents,
+    include_source=True,       # Links nodes back to source docs via MENTIONS
+    baseEntityLabel=True       # Adds __Entity__ label for cross-type queries
+)
+```
+
+**Query with Natural Language (GraphCypherQAChain):**
+
+```python
+from langchain_neo4j import GraphCypherQAChain
+
+chain = GraphCypherQAChain.from_llm(
+    llm=llm,
+    graph=graph,
+    verbose=True,              # Show generated Cypher during development
+    validate_cypher=True,      # Auto-correct relationship direction errors
+    top_k=10,                  # Limit results returned
+)
+result = chain.invoke({"query": "What technologies are related to neural networks?"})
+```
+
+**How it works:** User question → LLM generates Cypher query → executes against Neo4j → LLM summarises results → natural language answer.
+
+**Improve Graph RAG Accuracy:**
+
+| Technique | What It Fixes | How |
+|-----------|--------------|-----|
+| **Schema filtering** | Irrelevant node types confusing the LLM | `exclude_types=["Concept"]` removes types from LLM's view |
+| **Cypher validation** | Incorrect relationship directions | `validate_cypher=True` — always enable, low cost |
+| **Few-shot Cypher** | Complex or domain-specific query patterns | Provide example question→Cypher pairs via `cypher_prompt` param |
+| **Separate LLMs** | Cypher generation needs more capability than summarisation | `cypher_llm=gpt-4o`, `qa_llm=gpt-4o-mini` |
+
+Combine all techniques for production-ready graph RAG.
+
+**Cypher Basics:**
+
+```cypher
+-- Find an entity
+MATCH (p:Person {name: "Elena"}) RETURN p
+
+-- Traverse relationships
+MATCH (p:Person)-[:CONTRIBUTED_TO]->(t:Technology) RETURN p.id, t.id
+
+-- Count entities by type
+MATCH (n:__Entity__) RETURN labels(n), count(n)
+```
 
 ---
 
@@ -526,10 +638,13 @@ For deploying LangGraph agents at scale, LangGraph Platform provides managed inf
 `MemorySaver` | `checkpointer` | `thread_id` | `app.stream()` | `stream_mode="messages"` | `AIMessageChunk` | `HumanMessage` filtering
 
 ### RAG Pipeline
-`PyPDFLoader` | `TextLoader` | `CSVLoader` | `PythonLoader` | `UnstructuredMarkdownLoader` | `RecursiveCharacterTextSplitter` | `TokenTextSplitter` | `SemanticChunker` | `Language.PYTHON` | `OpenAIEmbeddings` | `HuggingFaceEmbeddings` | `Chroma` | `FAISS` | `RunnablePassthrough` | `BM25Retriever` | hybrid retrieval
+`PyPDFLoader` | `TextLoader` | `CSVLoader` | `PythonLoader` | `UnstructuredMarkdownLoader` | `RecursiveCharacterTextSplitter` | `TokenTextSplitter` | `SemanticChunker` | `Language.PYTHON` | `OpenAIEmbeddings` | `HuggingFaceEmbeddings` | `RunnablePassthrough` | `BM25Retriever` | hybrid retrieval
 
-### Knowledge Graphs
-`LLMGraphTransformer` | `GraphDocument` | `Neo4jGraph` | `GraphCypherQAChain` | Cypher queries | `validate_cypher` | `exclude_types` | `include_source` | `baseEntityLabel` | few-shot Cypher
+### Vector Databases
+`Chroma.from_documents()` | `FAISS` | `persist_directory` | `.as_retriever()` | `search_type="similarity"` | `search_kwargs={"k": N}` | cosine similarity | `Document` (`.page_content`, `.metadata`)
+
+### Graph Database (Neo4j)
+`Neo4jGraph` | `LLMGraphTransformer` | `.convert_to_graph_documents()` | `.add_graph_documents()` | `include_source` | `baseEntityLabel` | `GraphCypherQAChain` | `validate_cypher` | `exclude_types` | `cypher_llm` / `qa_llm` | `cypher_prompt` | few-shot Cypher | Cypher query language
 
 ### Evaluation
 RAGAS | `faithfulness` | `context_precision` | `EvaluatorChain` | golden datasets | LLM-as-Judge | red teaming | global simulation | `temperature=0` for eval
