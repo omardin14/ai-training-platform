@@ -45,7 +45,7 @@ That's it. `make learn` handles virtual environment creation, dependency install
 
 ### LangChain Agents & LangGraph (Available)
 
-Agent architectures, custom tools, multi-agent systems, and LangGraph:
+7 modules covering agent architectures, custom tools, and LangGraph workflows:
 
 | # | Module | Topics |
 |---|--------|--------|
@@ -55,8 +55,7 @@ Agent architectures, custom tools, multi-agent systems, and LangGraph:
 | 04 | Chatbot Responses | `.stream()`, `stream_graph_updates()`, graph visualisation, hallucination awareness |
 | 05 | Adding External Tools | Wikipedia tool, `.bind_tools()`, `ToolNode`, `tools_condition`, conditional edges |
 | 06 | Memory & Conversation | `MemorySaver`, `checkpointer`, `thread_id`, conversation context, follow-up questions |
-
-More modules coming soon.
+| 07 | Multi-Tool Chatbot | `@tool` custom tools, LLM-powered vs pure Python tools, `ToolNode`, `bind_tools`, `MessagesState`, `should_continue`, `call_model`, `app.stream()` |
 
 ### AI Theory & Foundations (Available)
 
